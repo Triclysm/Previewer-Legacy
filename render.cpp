@@ -234,7 +234,7 @@ void ChangeLedColor(int numColors, int newColor[], bool off)
             }
             if (numColors == 3) colLedOn[3] = 1.0f;
         }
-		InitDisplayLists();
+        InitDisplayLists();
     }
 }
 

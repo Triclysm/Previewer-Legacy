@@ -34,6 +34,186 @@
 #include "TCAnim.h"
 #include "TCAnimLua.h"
 
+///
+/// \brief String Remove Spaces
+///
+/// Modifies the passed string by removing each space character from the string.
+///
+/// \param toConvert The string to remove the spaces from.
+/// \param spaceChar The character to remove from the string (' ' by default).
+///
+void StringRemoveSpaces(std::string &toRemove, char spaceChar = ' ')
+{
+    size_t spacePos = toRemove.find(spaceChar);
+    while (spacePos != std::string::npos)
+    {
+        toRemove.erase(spacePos, 1);
+        spacePos = toRemove.find(spaceChar);
+    }
+}
+
+
+///
+/// \brief String To Lowercase
+///
+/// Modifies the passed string and converts each character to its lowercase equivalent.
+///
+/// \param toConvert The string to convert to lowercase.
+///
+void StringToLowercase(std::string &toLower)
+{
+    for (size_t i = 0; i < toLower.length(); i++)
+    {
+        toLower[i] = std::tolower(toLower[i]);
+    }
+}
+
+
+///
+/// \brief String To Uppercase
+///
+/// Modifies the passed string and converts each character to its uppercase equivalent.
+///
+/// \param toConvert The string to convert to uppercase.
+///
+void StringToUppercase(std::string &toUpper)
+{
+    for (size_t i = 0; i < toUpper.length(); i++)
+    {
+        toUpper[i] = std::toupper(toUpper[i]);
+    }
+}
+
+
+///
+/// \brief String To Integer
+///
+/// Attempts to convert the passed string into an integer.
+///
+/// \param toConvert The string representing the integer value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool StringToInt(std::string const& toConvert, int &result)
+{
+    std::stringstream ssToConv(toConvert);
+    return (bool)(ssToConv >> result);
+}
+
+
+///
+/// \brief String To Boolean
+///
+/// Attempts to convert the passed string into a boolean.  Valid string values are "true",
+/// "false", or any number which evaluates to 0 or 1.
+/// 
+/// \param toConvert The string representing the boolean value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool StringToBool(std::string const& toConvert, bool &result)
+{
+    // First, we trim any existing spaces from the string, and convert it to lowercase.
+    std::string lcStr(toConvert);
+    StringRemoveSpaces(lcStr);
+    StringToLowercase(lcStr);
+    // Does the remaining string match "true" or "false"?
+    if (lcStr == "true")
+    {
+        result = true;
+        return true;
+    }
+    if (lcStr == "false")
+    {
+        result = false;
+        return true;
+    }
+    // Finally, try to convert the remaining string to a number.
+    std::stringstream ssToConv(lcStr);
+    int conVal;
+    if (ssToConv >> conVal)
+    {
+        if (conVal == 1)
+        {
+            result = true;
+            return true;
+        }
+        if (conVal == 0)
+        {
+            result = false;
+            return true;
+        }
+    }
+    // Lastly, if we get here, no acceptable conversion was found, so return false.
+    return false;
+}
+
+
+///
+/// \brief String To Triclysm Constant
+///
+/// Attempts to convert the passed string into a Triclysm constant value (e.g. "X_AXIS"
+/// should be evaluated to what is #defined by the macro TC_X_AXIS).
+///
+/// \param toConvert The string representing the constant value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool StringToConst(std::string const& toConvert, int &result)
+{
+    std::string toConv(toConvert);
+    StringToUppercase(toConv);      // First, we convert the passed string to uppercase,
+    StringRemoveSpaces(toConv);     // and remove all spaces from it.
+    // So, if the length of the remaining string matches ?_AXIS...
+    if (toConv.length() == 6)
+    {
+        if (toConv == "X_AXIS")
+        {
+            result = TC_X_AXIS;
+            return true;
+        }
+        if (toConv == "Y_AXIS")
+        {
+            result = TC_Y_AXIS;
+            return true;
+        }
+        if (toConv == "Z_AXIS")
+        {
+            result = TC_Z_AXIS;
+            return true;
+        }
+    }
+    // Else, if the length of the remaining string matches ??_PLANE...
+    else if (toConv.length() == 8)
+    {
+        if (toConv == "XY_PLANE")
+        {
+            result = TC_XY_PLANE;
+            return true;
+        }
+        if (toConv == "YZ_PLANE")
+        {
+            result = TC_YZ_PLANE;
+            return true;
+        }
+        if (toConv == "ZX_PLANE")
+        {
+            result = TC_ZX_PLANE;
+            return true;
+        }
+    }
+    // If the control gets here, we didn't find a constant, so we return false.
+    return false;
+}
 
 
 namespace TCC_ERROR
@@ -58,22 +238,6 @@ namespace TCC_ERROR
 
 namespace TCC_COMMANDS
 {
-
-///
-/// \brief String To Integer
-///
-/// Attempts to convert the passed string into an integer.
-///
-/// \param toConvert The string representing the integer to convert.
-/// \param result    The variable to store the result in (if applicable).
-///
-/// \returns True if the conversion was successful, false otherwise.
-///
-bool StringToInt(std::string const& toConvert, int &result)
-{
-	std::stringstream ssToConv(toConvert);
-	return (bool)(ssToConv >> result);
-}
 
 void showfps(std::vector<std::string> const& argv)
 {
@@ -296,64 +460,64 @@ void cubesize(std::vector<std::string> const& argv)
 
 void color(std::vector<std::string> const& argv)
 {
-	int argOffset = 0;
-	bool offLed   = false;
-	// So, if we have 4 or 5 arguments, and the first argument is a switch...
-	if ((argv.size() == 4 || argv.size() == 5) && argv[0][0] == '-')
-	{
-		if (argv[0] == "-on")
-		{
-			offLed = false;
-		}
-		else if (argv[0] == "-off")
-		{
-			offLed = true;
-		}
-		else
-		{
-			WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-		}
-		argOffset = 1;
-	}
-	// So, if we have the proper number of colours...
-	int numColors = argv.size() - argOffset;
-	if (numColors == 3 || numColors == 4)
-	{
-		bool validColor = true;
-		int *newColor = new int[numColors];
-		for (int i = 0; i < numColors; i++)
-		{
-			
-			if (!StringToInt(argv[i + argOffset], newColor[i]) ||
-				newColor[i] < 0 || newColor[i] > 255)
-			{
-				validColor = false;
-				break;
-			}
-		}
-		if (validColor)
-		{
-			ChangeLedColor(numColors, newColor, offLed);
-		}
-		else
-		{
-			WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-		}
-	}
-	else
-	{
-		WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
-	}
-	/*
+    int argOffset = 0;
+    bool offLed   = false;
+    // So, if we have 4 or 5 arguments, and the first argument is a switch...
+    if ((argv.size() == 4 || argv.size() == 5) && argv[0][0] == '-')
+    {
+        if (argv[0] == "-on")
+        {
+            offLed = false;
+        }
+        else if (argv[0] == "-off")
+        {
+            offLed = true;
+        }
+        else
+        {
+            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+        }
+        argOffset = 1;
+    }
+    // So, if we have the proper number of colours...
+    int numColors = argv.size() - argOffset;
+    if (numColors == 3 || numColors == 4)
+    {
+        bool validColor = true;
+        int *newColor = new int[numColors];
+        for (int i = 0; i < numColors; i++)
+        {
+            
+            if (!StringToInt(argv[i + argOffset], newColor[i]) ||
+                newColor[i] < 0 || newColor[i] > 255)
+            {
+                validColor = false;
+                break;
+            }
+        }
+        if (validColor)
+        {
+            ChangeLedColor(numColors, newColor, offLed);
+        }
+        else
+        {
+            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+        }
+    }
+    else
+    {
+        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
+    }
+    /*
     if (argv.size() == 3 || argv.size() == 4)
     {
         W
     }
     if (argv.size() == 4)
     {
-		std::stringstream newColStr[4] = { std::stringstream(argv[0]),
+        std::stringstream newColStr[4] = { std::stringstream(argv[0]),
                                            std::stringstream(argv[1]),
-										   std::stringstream(argv[2]),
+                                           std::stringstream(argv[2]),
                                            std::stringstream(argv[3]) };
         Uint16 newColVal[4];
         if ( !(newColStr[0] >> newColVal[0]) || newColVal[0] < 0 || newColVal[0] > 255 ||
@@ -372,8 +536,8 @@ void color(std::vector<std::string> const& argv)
     {
         WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
     }*/
-	//Uint16 x[] = {255, 0, 0};
-	//ChangeLedColor(3, x, false);
+    //Uint16 x[] = {255, 0, 0};
+    //ChangeLedColor(3, x, false);
 }
 
 void tickrate(std::vector<std::string> const& argv)
@@ -434,8 +598,8 @@ void loadanim(std::vector<std::string> const& argv)
         for (size_t i = 1; i < argv.size(); i++)    // So, looping through each argument...
         {
             // First, we determine if the argument represents a constant.
-            int argVal = GetConstantValue(argv[i]);
-            if (argVal > 0) // If the argument value was correctly parsed...
+            int argVal;
+            if (StringToConst(argv[i], argVal)) // If the argument value was correctly parsed...
             {
                 argVals[i-1] = argVal;  // Update the argument vector.
             }
@@ -507,11 +671,11 @@ void RegisterCommands()
     cmdList.push_back(new ConsoleCommand("loadanim", loadanim,
         "Help entry not done."));
 
-	cmdList.push_back(new ConsoleCommand("color", color,
-		"Sets the color of the on or off LEDs.  Values should be passed in R G B format, from 0 to 255. Examples:\n"
-		"  color 255 0 0            Sets the color of the on LEDs to red.\n"
-		"  color -on 0 0 255        Sets the color of the on LEDs to blue.\n"
-		"  color -off 0 255 0       Sets the color of the off LEDs to green."));
+    cmdList.push_back(new ConsoleCommand("color", color,
+        "Sets the color of the on or off LEDs.  Values should be passed in R G B format, from 0 to 255. Examples:\n"
+        "  color 255 0 0            Sets the color of the on LEDs to red.\n"
+        "  color -on 0 0 255        Sets the color of the on LEDs to blue.\n"
+        "  color -off 0 255 0       Sets the color of the off LEDs to green."));
 
 /*    cmdList.push_back(new ConsoleCommand("sendplane", sendplane,
         ""));

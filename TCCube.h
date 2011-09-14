@@ -101,7 +101,7 @@ class TCCube
     ///
     /// Each dimension is consistent with the axis definitions (e.g. TC_X_AXIS) at the top
     /// of this file (also consistent with the remaining dimension from plane definitions).
-	byte sc[3];
+    byte sc[3];
 };
 
 

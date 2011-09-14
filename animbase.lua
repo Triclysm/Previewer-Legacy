@@ -56,7 +56,7 @@ OAXIS[XY_PLANE][1] = Y_AXIS
 
 -- Called when the animation is created, this stores the cube size in the above variables.
 function InitSize(sizeX, sizeY, sizeZ)
-	sx = sizeX
-	sy = sizeY
-	sz = sizeZ
+    sx = sizeX
+    sy = sizeY
+    sz = sizeZ
 end
