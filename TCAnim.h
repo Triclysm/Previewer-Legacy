@@ -62,7 +62,7 @@ protected:
     /// Advances the cube state by one step.  This method is defined by any animations
     /// which inheret this base class.
     virtual void Update(){}
-	byte         sc[3];         ///< Number of cube voxels in each dimension.
+    byte         sc[3];         ///< Number of cube voxels in each dimension.
     unsigned int iterations;    ///< Number of times the animation has run.
 private:
     unsigned int ticks;         ///< Number of times the animation's state was updated.

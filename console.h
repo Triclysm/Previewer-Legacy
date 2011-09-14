@@ -80,7 +80,6 @@ bool cmpConsoleCmd(ConsoleCommand const *first, ConsoleCommand const *second);
 bool cmpCmdAlias(CommandAlias const *first, CommandAlias const *second);
 bool cmpStrNoCase(std::string const& first, std::string const& second);
 void StripWhitespaceLT(std::string &toTrim);
-int  GetConstantValue(std::string const& toConvert);
 
 void WriteOutput(std::string const& outputStr);
 void WriteHistory(std::string const& historyStr);
@@ -99,6 +98,7 @@ void InputAddChar(char c);
 void ParseInput();
 ConsoleCommand *GetCommand(std::string const& cmdName);
 void SuggestCommand();
+
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

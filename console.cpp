@@ -100,19 +100,19 @@ void InitConsole(size_t maxInputLen, size_t maxHistLines, size_t maxOutLines)
 ///
 void WriteOutput(std::string const& outputStr)
 {
-	std::string newOutput(outputStr);
-	size_t newLinePos = newOutput.find('\n');
-	while (newLinePos != std::string::npos)
-	{
-		outputList.push_front(newOutput.substr(0, newLinePos));
-		newOutput.erase(0, newLinePos + 1);
-		newLinePos = newOutput.find('\n');
-	}
-	outputList.push_front(newOutput);
-	while (outputList.size() > maxOutputLines)
-	{
-		outputList.pop_back();
-	}
+    std::string newOutput(outputStr);
+    size_t newLinePos = newOutput.find('\n');
+    while (newLinePos != std::string::npos)
+    {
+        outputList.push_front(newOutput.substr(0, newLinePos));
+        newOutput.erase(0, newLinePos + 1);
+        newLinePos = newOutput.find('\n');
+    }
+    outputList.push_front(newOutput);
+    while (outputList.size() > maxOutputLines)
+    {
+        outputList.pop_back();
+    }
 }
 
 
@@ -532,46 +532,4 @@ void SuggestCommand()
         currInput = toSuggest;          // Replace the current input with the suggested
         cursorPos = toSuggest.length(); // command, and move the cursor to the end.
     }
-}
-
-
-///
-/// \brief Get Constant Value
-///
-/// Used to convert possible argument values into their respective constant values.  For
-/// example, if a user enters X_AXIS as a command's argument, this function will return
-/// the value of the TC_X_AXIS constant.
-///
-/// \param   toConvert the string containing the constant to parse (case insensitive).
-/// \returns The integer representing the passed constant, or -1 if it could not be parsed.
-/// 
-int GetConstantValue(const std::string &toConvert)
-{
-    std::string toConv(toConvert);
-    // If the string length matches "?_AXIS" or "??_PLANE"...
-    if (toConv.length() == 6 || toConv.length() == 8)
-    {
-        // We first convert the string to uppercase.
-        for (size_t i = 0; i < toConv.length(); i++)
-        {
-            toConv[i] = std::toupper(toConv[i]);
-        }
-        // Now, we can see which constant (if any) the argument represents.
-        // To save time, we do some extra comparisons (it's faster to compare lengths
-        // and individual character values before comparing the entire string).
-        if (toConv.length() == 6)
-        {
-            if (toConv[0] == 'X' && toConv == "X_AXIS") return TC_X_AXIS;
-            if (toConv[0] == 'Y' && toConv == "Y_AXIS") return TC_Y_AXIS;
-            if (toConv[0] == 'Z' && toConv == "Z_AXIS") return TC_Z_AXIS;
-        }
-        else
-        {
-            if (toConv[0] == 'X' && toConv == "XY_PLANE") return TC_XY_PLANE;
-            if (toConv[0] == 'Y' && toConv == "YZ_PLANE") return TC_YZ_PLANE;
-            if (toConv[0] == 'Z' && toConv == "ZX_PLANE") return TC_ZX_PLANE;
-        }
-    }
-    // If the flow control gets here, then the string is not a constant, so return -1.
-    return -1;
 }

@@ -257,13 +257,13 @@ void HandleConsoleKey(SDLKey ksym, SDLMod kmod)
     }
     if (ksym == SDLK_SLASH)
         InputAddChar('/');
-	if (ksym == SDLK_MINUS)
-	{
-		if (kmod & KMOD_SHIFT)
-			InputAddChar('_');
-		else
-			InputAddChar('-');
-	}
+    if (ksym == SDLK_MINUS)
+    {
+        if (kmod & KMOD_SHIFT)
+            InputAddChar('_');
+        else
+            InputAddChar('-');
+    }
 }
 
 
@@ -309,6 +309,7 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             viewRotX -= kRotRate;
             break;
 /*
+
         case SDLK_a:
             //int args[1] = { TC_XY_PLANE };
             //SetAnim(new TCAnimLua(cubeSize, "tcal/sendplane.lua", 0, args));
