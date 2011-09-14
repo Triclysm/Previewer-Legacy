@@ -33,10 +33,6 @@
 #ifndef TC_MAIN_
 #define TC_MAIN_
 
-// Comment out or remove the following line if you want to run the animation synchronously
-// with the application, or SDL does not support multithreading on your target system.
-#define TC_PREVIEWER_USE_THREADING
-
 #include "TCAnim.h"     // The Triclysm Animation Library.
 #include "SDL.h"        // The main SDL include file.
 
@@ -81,12 +77,11 @@ void SetTickRate(Uint32 newRate);               // Sets the animation tick rate.
 void SetCubeSize(byte sx, byte sy, byte sz);    // Updates the current cube size.
 void SetAnim(TCAnim *newAnim);                  // Sets the current animation.
 
-#ifdef TC_PREVIEWER_USE_THREADING   // Thread specific functions:
-    int  UpdateAnim(void *unused);  // Updates the current animation at the current rate.
-    bool InitAnimThread();          // Initializes the animation thread and mutex.
-    void LockAnimMutex();           // Locks the animation mutex (for use with currAnim).
-    void UnlockAnimMutex();         // Unlocks the animation mutex.
-#endif
+// Thread specific functions:
+int  UpdateAnim(void *unused);  // Updates the current animation at the current rate.
+bool InitAnimThread();          // Initializes the animation thread and mutex.
+void LockAnimMutex();           // Locks the animation mutex (for use with currAnim).
+void UnlockAnimMutex();         // Unlocks the animation mutex.
 
 
 #endif
