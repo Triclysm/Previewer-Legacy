@@ -36,27 +36,21 @@
 #include "TCAnim.h"                     // TCAnim object definition.
 #include "SDL.h"                        // The main SDL include file.
 #include "SDL_opengl.h"                 // SDL OpenGL header (includes GL.h and GLU.h).
+#include "SDL_thread.h"                 // SDL threading header.
 
 #include "main.h"                       // The complimentary header to this source file.
 #include "render.h"                     // Includes all OpenGL-related rendering functions.
 #include "console.h"
 #include "events.h"
 
-#ifdef TC_PREVIEWER_USE_THREADING       // If threading is enabled, we also need to
-#    include "SDL_thread.h"             // include the SDL threading header.
-#endif
-
-
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef TC_PREVIEWER_USE_THREADING
-    SDL_Thread *animThread; ///< The mutex lock for the \ref currAnim object.
-    SDL_mutex  *animMutex;  ///< The animation thread object.
-    bool        threadInit = false;
-#endif
+SDL_Thread *animThread;         ///< The mutex lock for the \ref currAnim object.
+SDL_mutex  *animMutex;          ///< The animation thread object.
+bool        threadInit = false; ///< Flag used to check if the animation thread is running.
 
 Uint32    tickRate,         ///< The current tick rate (ticks/second).
           msPerTick;        ///< The amount of milliseconds/tick (see \ref SetTickRate).
@@ -102,9 +96,7 @@ int main(int argc, char *argv[])
     InitGL();                   // Next, we initialize our OpenGL viewport,
     InitConsole(300, 15, 200);  // and initialize the scripting console.
 
-#   ifdef TC_PREVIEWER_USE_THREADING        // If we are using threading, then we have to
-        if (!InitAnimThread()) return 1;    // initialize the animation thread and mutex
-#   endif                                   // (or quit if we couldn't initialize them).
+    if (!InitAnimThread()) return 1;    // We now initialize the animation thread and mutex.
 
     SetCubeSize(8, 8, 8);       // Now, we can set the initial cube size (and animation),
     runAnim = true;             // allow the animation (thread) to be run,
@@ -169,10 +161,8 @@ bool InitSDL()
 ///
 void CleanupSDL()
 {
-#   ifdef TC_PREVIEWER_USE_THREADING
-        SDL_WaitThread(animThread, NULL);
-        SDL_DestroyMutex(animMutex);
-#   endif
+    SDL_WaitThread(animThread, NULL);
+    SDL_DestroyMutex(animMutex);
     delete currAnim;
     SDL_Quit();
 }
@@ -206,10 +196,8 @@ void SetTickRate(Uint32 newRate)
 ///
 void SetAnim(TCAnim *newAnim)
 {
-    // If we use threading, we need to lock the animMutex before modifying the pointer.
-#   ifdef TC_PREVIEWER_USE_THREADING
-        LockAnimMutex();
-#   endif
+    // We need to lock the animMutex before modifying the pointer.
+    LockAnimMutex();
 
     // Next, we delete the current animation, and replace it with the passed newAnim.
     // If newAnim is NULL, we set currAnim to a new, default ("blank") animation.
@@ -218,11 +206,8 @@ void SetAnim(TCAnim *newAnim)
         currAnim = newAnim;
     else
         currAnim = new TCAnim(cubeSize);
-    // Finally, if we are using threading, unlock the animMutex before returning.
-#   ifdef TC_PREVIEWER_USE_THREADING
-        UnlockAnimMutex();
-#   endif
-
+    // Finally, we unlock the animMutex before returning.
+    UnlockAnimMutex();
 }
 
 
@@ -254,8 +239,6 @@ void SetCubeSize(byte sx, byte sy, byte sz)
     SetAnim(NULL);
 }
 
-
-#ifdef TC_PREVIEWER_USE_THREADING
 
 ///
 /// \brief Initialize Animation Thread
@@ -348,6 +331,3 @@ void UnlockAnimMutex()
         exit(1);
     }
 }
-
-
-#endif
