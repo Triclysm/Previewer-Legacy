@@ -47,13 +47,9 @@ class CommandAlias;         // Command alias class, defined below in this file.
 
 extern bool     consoleEnabled; // True to draw the console, false to hide it.
 
-extern size_t   maxInputLength, // Maximum length of user input in the console.
-                cursorPos;      // Position of the cursor.
+extern size_t   cursorPos;      // Position of the cursor.
 
 extern std::string currInput;   // The string of the actual current input.
-
-extern size_t maxHistoryLines,  // Maximum number of lines to cache in the history list.
-              maxOutputLines;   // Maximum number of lines to cache in the output list.
 
 extern const std::string inputPrefix;           // String prefix to append to the input.
 

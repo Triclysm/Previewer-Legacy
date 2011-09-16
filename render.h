@@ -49,8 +49,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
- 
-extern size_t   totalLines;         // Total number of lines that can fit in the console.
+
 extern GLfloat  ledStartPos[3];     // Array holding the position of the (0,0,0) voxel.
 
 // Colour Definitions (must regenerate display lists for LEDs, text can change on-the-fly).
@@ -75,10 +74,7 @@ extern GLfloat  viewRotX,           // The current view rotation in the x-dimens
                 viewPosZ;           // The current location in the z-dimension.
 
 // Framerate limiting variables:
-extern Uint16   fpsMax,             // Maximum FPS for the frame limiter.
-                fpsRateCap;         // Current delay value (in ms).
-extern Uint32   fpsLastDraw,        // Last time the FPS counter was drawn.
-                fpsCurrTicks;       // Number of frames rendered since fpsLastDraw.
+extern Uint16   fpsMax;             // Maximum FPS for the frame limiter.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
