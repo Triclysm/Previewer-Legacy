@@ -413,11 +413,11 @@ void DrawCube()
                         glPushMatrix();
                         glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
                         // Next we set the LED color based on colLedOn and the voxel state.
-                        bool voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
+                        byte voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
                         glColor4f(colLedOn[0] * voxelState / 255.0f,
                                   colLedOn[1] * voxelState / 255.0f,
                                   colLedOn[2] * voxelState / 255.0f,
-                                  colLedOn[3] );    // We leave the alpha channel.
+                                  voxelState == 0x00 ? colLedOff[3] : colLedOn[3]);
                         // Now, we can call the LED display list to draw the current LED.
                         glCallList(dlistLed);
                         // Finally, we pop the matrix, and increment the z-coordinate.
@@ -443,8 +443,7 @@ void DrawCube()
                         // First, we copy and translate the current matrix.
                         glPushMatrix();
                         glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
-                        // Next we set the LED color based on colLedOn and the voxel state.
-                        bool voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
+                        // Next we set the LED color based on the animation's cube states.
                         glColor4f(currAnim->cubeState[0]->GetVoxelState(x, y, z) / 255.0f,
                                   currAnim->cubeState[1]->GetVoxelState(x, y, z) / 255.0f,
                                   currAnim->cubeState[2]->GetVoxelState(x, y, z) / 255.0f,
