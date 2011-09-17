@@ -42,24 +42,24 @@
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-class ConsoleCommand;       // Console command class, defined below in this file.
-class CommandAlias;         // Command alias class, defined below in this file.
+class ConsoleCommand;               // Console command class, defined below in this file.
+class CommandAlias;                 // Command alias class, defined below in this file.
 
-extern bool     consoleEnabled; // True to draw the console, false to hide it.
+extern bool        consoleEnabled;  // True to draw the console, false to hide it.
 
-extern size_t   cursorPos;      // Position of the cursor.
+extern size_t      cursorPos;       // Position of the cursor.
+extern std::string currInput;       // The string of the actual current input.
 
-extern std::string currInput;   // The string of the actual current input.
+extern const std::string          inputPrefix;      // Prefix prepended to currInput.
 
-extern const std::string inputPrefix;           // String prefix to append to the input.
+extern std::list<ConsoleCommand*> cmdList;          // The command list itself.
+extern std::list<CommandAlias*>   aliasList;        // The alias list itself.
 
-extern std::list<ConsoleCommand*> cmdList;      // The command list itself.
-extern std::list<CommandAlias*>   aliasList;    // The alias list itself.
-
-extern std::list<std::string>     outputList,   // The console output list.
-                                  historyList;  // The console history list.
+extern std::list<std::string>     outputList,       // The console output list.
+                                  historyList;      // The console history list.
 
 extern std::list<std::string>::iterator outputIt;   // The output list iterator.
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                 FUNCTION PROTOTYPES                                 *

@@ -200,10 +200,13 @@ void TCAnim::SetVoxelColor(byte x, byte y, byte z, byte grey)
     {
         case 0:
             cubeState[0]->SetVoxelState(x, y, z, grey == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetVoxelState(x, y, z, grey);
+            break;
         case 3:
             SetVoxelColor(x, y, z, grey, grey, grey);
+            break;
         default:
             break;
     }
@@ -232,12 +235,15 @@ void TCAnim::SetVoxelColor(byte x, byte y, byte z, byte r, byte g, byte b)
         case 0:
             cubeState[0]->SetVoxelState(x, y, z, 
                 (r == 0x00 && g == 0x00 && b == 0x00) == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetVoxelState(x, y, z, (r + g + b) / 3);
+            break;
         case 3:
             cubeState[TC_COLOR_R]->SetVoxelState(x, y, z, r);
             cubeState[TC_COLOR_G]->SetVoxelState(x, y, z, g);
             cubeState[TC_COLOR_B]->SetVoxelState(x, y, z, b);
+            break;
         default:
             break;
     }
@@ -325,10 +331,13 @@ void TCAnim::SetColumnColor(byte axis, byte dim1, byte dim2, byte grey)
     {
         case 0:
             cubeState[0]->SetColumnState(axis, dim1, dim2, grey == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetColumnState(axis, dim1, dim2, grey);
+            break;
         case 3:
             SetColumnColor(axis, dim1, dim2, grey, grey, grey);
+            break;
         default:
             break;
     }
@@ -359,12 +368,15 @@ void TCAnim::SetColumnColor(byte axis, byte dim1, byte dim2, byte r, byte g, byt
         case 0:
             cubeState[0]->SetColumnState(axis, dim1, dim2, 
                 (r == 0x00 && g == 0x00 && b == 0x00) == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetColumnState(axis, dim1, dim2, (r + g + b) / 3);
+            break;
         case 3:
             cubeState[TC_COLOR_R]->SetColumnState(axis, dim1, dim2, r);
             cubeState[TC_COLOR_G]->SetColumnState(axis, dim1, dim2, g);
             cubeState[TC_COLOR_B]->SetColumnState(axis, dim1, dim2, b);
+            break;
         default:
             break;
     }
@@ -414,10 +426,13 @@ void TCAnim::SetPlaneColor(byte plane, byte offset, byte grey)
     {
         case 0:
             cubeState[0]->SetPlaneState(plane, offset, grey == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetPlaneState(plane, offset, grey);
+            break;
         case 3:
             SetPlaneColor(plane, offset, grey, grey, grey);
+            break;
         default:
             break;
     }
@@ -446,12 +461,15 @@ void TCAnim::SetPlaneColor(byte plane, byte offset, byte r, byte g, byte b)
         case 0:
             cubeState[0]->SetPlaneState(plane, offset, 
                 (r == 0x00 && g == 0x00 && b == 0x00) == 0x00 ? 0x00 : 0x01);
+            break;
         case 1:
             cubeState[0]->SetPlaneState(plane, offset, (r + g + b) / 3);
+            break;
         case 3:
             cubeState[TC_COLOR_R]->SetPlaneState(plane, offset, r);
             cubeState[TC_COLOR_G]->SetPlaneState(plane, offset, g);
             cubeState[TC_COLOR_B]->SetPlaneState(plane, offset, b);
+            break;
         default:
             break;
     }
