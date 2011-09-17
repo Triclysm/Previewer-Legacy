@@ -52,7 +52,7 @@
 
 extern GLfloat  ledStartPos[3];     // Array holding the position of the (0,0,0) voxel.
 
-// Colour Definitions (must regenerate display lists for LEDs, text can change on-the-fly).
+// Colour Definitions (can change all on-the-fly).
 extern GLclampf colClear[4],        // Clear colour
                 colLedOn[4],        // LED on colour
                 colLedOff[4],       // LED off colour

@@ -46,7 +46,7 @@
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
          
-// Colour Definitions (must regenerate display lists for LEDs, can change others anytime).
+// Colour Definitions (can change all on-the-fly).
 GLclampf colClear[4]   = {0.15f, 0.15f, 0.15f, 1.00f},  ///< The clear/background colour.
          colLedOn[4]   = {0.20f, 0.20f, 1.00f, 1.00f},  ///< Colour of an LED that is on.
          colLedOff[4]  = {0.00f, 0.00f, 0.00f, 0.50f};  ///< Colour of an LED that is off.
@@ -58,8 +58,7 @@ GLclampf colConInputBg[4] = {0.2f, 0.2f, 0.2f, 0.5f},   ///< Input background co
          colStrConsOut[3] = {0.90f, 0.90f, 0.90f};      ///< Console output text colour.
 
 // LED-sphere specific parameters (can also be used to control quality/performance).
-GLuint   dlistLedOn,        ///< The LED on  display list.
-         dlistLedOff;       ///< The LED off display list.
+GLuint   dlistLed;          ///< The LED display list.
 GLfloat  ledSpacing = 0.5f, ///< The space between LEDs.
          sphRadius  = 0.1f; ///< The radius of the LED spheres.
 GLint    sphSlices  = 12,   ///< Number of slices used when creating the sphere.
@@ -101,9 +100,8 @@ void InitGL()
 {
     glEnable(GL_BLEND);             // Next, we enable blending and set the blending mode.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    dlistLedOn  = glGenLists(1);    // Before we initialize the display lists, we set the
-    dlistLedOff = glGenLists(1);    // unique display list identifiers for each.
-    InitDisplayLists();             // Finally, we initialize the two display lists.
+    dlistLed = glGenLists(1);       // Next, we create the LED display list,
+    InitDisplayLists();             // and generate/initialize the new list.
     InitFont();                     // We also prepare the font for drawing.
     // We also set the clear colour of the scene to the background colour.
     glClearColor(colClear[0], colClear[1], colClear[2], colClear[3]);
@@ -115,19 +113,17 @@ void InitGL()
 ///
 /// \brief Initialize Display Lists
 ///
-/// Initializes (or replaces) the LED display lists with the proper models (including the
-/// colour and quality).  The sphere parameters are set by \ref sphRadius, \ref sphSlices,
+/// Initializes (or replaces) the LED display list with the proper models (including the
+/// sphere quality).  The sphere parameters are set by \ref sphRadius, \ref sphSlices,
 /// and \ref sphStacks.
 ///
 /// \remarks If any of the sphere parameters are changed, this function must be called in
 ///          order for those changes to take effect.
-/// \see     dlistLedOn | dlistLedOff | colLedOn | colLedOff
+/// \see     dlistLed
 ///
 void InitDisplayLists()
 {
-    // We need to generate a display list for an "on" LED and an "off" LED.
-    glNewList(dlistLedOn, GL_COMPILE);              // First, we create/replace the list.
-    glColor4fv(colLedOn);                           // Next, we set the sphere's colour.
+    glNewList(dlistLed, GL_COMPILE);                // First, we create/replace the list.
     glBegin(GL_LINE_LOOP);                          // Now, we start drawing.
     GLUquadricObj* tmpquad = gluNewQuadric();       // First, we setup a new quadratic.
     gluQuadricDrawStyle(tmpquad, GLU_FILL);         // Then, we set the quad's draw style.
@@ -135,16 +131,6 @@ void InitDisplayLists()
     gluDeleteQuadric(tmpquad);                      // delete the quad,
     glEnd();                                        // and end drawing.
     glEndList();                                    // Finally, we exit display list mode.
-    // Now, we just repeat the same steps, except using the LED's "off" colour.
-    glNewList(dlistLedOff, GL_COMPILE);
-    glColor4fv(colLedOff);
-    glBegin(GL_LINE_LOOP);
-    tmpquad = gluNewQuadric();
-    gluQuadricDrawStyle(tmpquad, GLU_FILL);
-    gluSphere(tmpquad, sphRadius, sphSlices, sphStacks);
-    gluDeleteQuadric(tmpquad);
-    glEnd();
-    glEndList();
 }
 
 
@@ -375,37 +361,113 @@ void DrawCube()
     ledCurrPos[0] = ledStartPos[0];
     ledCurrPos[1] = ledStartPos[1];
     ledCurrPos[2] = ledStartPos[2];
-    // Now, we can render each voxel (with the proper state, "on" or "off").
-    for (byte x = 0; x < cubeSize[0]; x++)
+
+    // Now, we create a different render loop for the different animation color types.
+    // We do this so we don't perform a comparison for every voxel in the cube.  The outer
+    // loops for each case should be the same (i.e. loop through all x, y, and z values).
+    switch (currAnim->GetNumColors())
     {
-        for (byte y = 0; y < cubeSize[1]; y++)
-        {
-            for (byte z = 0; z < cubeSize[2]; z++)
+        case 0:
+            // Now, we can render each voxel (with the proper state, "on" or "off").
+            for (byte x = 0; x < cubeSize[0]; x++)
             {
-                // First, we copy the current matrix, and translate to the proper position.
-                glPushMatrix();
-                glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
-                // Next, we call the proper display list if the LED is on or off.
-                if (currAnim->cubeState->GetVoxelState(x, y, z) == true)
+                for (byte y = 0; y < cubeSize[1]; y++)
                 {
-                    glCallList(dlistLedOn);
+                    for (byte z = 0; z < cubeSize[2]; z++)
+                    {
+                        // First, we copy and translate the current matrix.
+                        glPushMatrix();
+                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        // Next, we set the LED color to either colLedOn or colLedOff.
+                        if (currAnim->cubeState[0]->GetVoxelState(x, y, z) != 0x00)
+                        {
+                            glColor4fv(colLedOn);
+                        }
+                        else
+                        {
+                            glColor4fv(colLedOff);
+                        }
+                        // Now, we can call the LED display list to draw the current LED.
+                        glCallList(dlistLed);
+                        // Finally, we pop the matrix, and increment the z-coordinate.
+                        glPopMatrix();
+                        ledCurrPos[2] += ledSpacing;
+                    }
+                    ledCurrPos[1] += ledSpacing;        // Increment the y-coordinate,
+                    ledCurrPos[2]  = ledStartPos[2];    // and reset the z-coordinate.
                 }
-                else
-                {
-                    glCallList(dlistLedOff);
-                }
-                // Finally, we restore our original matrix, and increment the z-coordinate.
-                glPopMatrix();
-                ledCurrPos[2] += ledSpacing;
+                ledCurrPos[0] += ledSpacing;        // Increment the x-coordinate,
+                ledCurrPos[1]  = ledStartPos[1];    // and reset the y-coordinate.
             }
-            ledCurrPos[1] += ledSpacing;            // Increment the current y-coordinate,
-            ledCurrPos[2]  = ledStartPos[2];        // and reset the z-coordinate.
-        }
-        ledCurrPos[0] += ledSpacing;            // Increment the current x-coordinate,
-        ledCurrPos[1]  = ledStartPos[1];        // and reset the y-coordinate.
+            break;
+
+        case 1:
+            // Now, we can render each voxel (with the proper greyscale color).
+            for (byte x = 0; x < cubeSize[0]; x++)
+            {
+                for (byte y = 0; y < cubeSize[1]; y++)
+                {
+                    for (byte z = 0; z < cubeSize[2]; z++)
+                    {
+                        // First, we copy and translate the current matrix.
+                        glPushMatrix();
+                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        // Next we set the LED color based on colLedOn and the voxel state.
+                        bool voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
+                        glColor4f(colLedOn[0] * voxelState / 255.0f,
+                                  colLedOn[1] * voxelState / 255.0f,
+                                  colLedOn[2] * voxelState / 255.0f,
+                                  colLedOn[3] );    // We leave the alpha channel.
+                        // Now, we can call the LED display list to draw the current LED.
+                        glCallList(dlistLed);
+                        // Finally, we pop the matrix, and increment the z-coordinate.
+                        glPopMatrix();
+                        ledCurrPos[2] += ledSpacing;
+                    }
+                    ledCurrPos[1] += ledSpacing;        // Increment the y-coordinate,
+                    ledCurrPos[2]  = ledStartPos[2];    // and reset the z-coordinate.
+                }
+                ledCurrPos[0] += ledSpacing;        // Increment the x-coordinate,
+                ledCurrPos[1]  = ledStartPos[1];    // and reset the y-coordinate.
+            }
+            break;
+
+        case 3:
+            // Now, we can render each voxel (with the proper color).
+            for (byte x = 0; x < cubeSize[0]; x++)
+            {
+                for (byte y = 0; y < cubeSize[1]; y++)
+                {
+                    for (byte z = 0; z < cubeSize[2]; z++)
+                    {
+                        // First, we copy and translate the current matrix.
+                        glPushMatrix();
+                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        // Next we set the LED color based on colLedOn and the voxel state.
+                        bool voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
+                        glColor4f(currAnim->cubeState[0]->GetVoxelState(x, y, z) / 255.0f,
+                                  currAnim->cubeState[1]->GetVoxelState(x, y, z) / 255.0f,
+                                  currAnim->cubeState[2]->GetVoxelState(x, y, z) / 255.0f,
+                                  1.0f );    // We leave the alpha channel full.
+                        // Now, we can call the LED display list to draw the current LED.
+                        glCallList(dlistLed);
+                        // Finally, we pop the matrix, and increment the z-coordinate.
+                        glPopMatrix();
+                        ledCurrPos[2] += ledSpacing;
+                    }
+                    ledCurrPos[1] += ledSpacing;        // Increment the y-coordinate,
+                    ledCurrPos[2]  = ledStartPos[2];    // and reset the z-coordinate.
+                }
+                ledCurrPos[0] += ledSpacing;        // Increment the x-coordinate,
+                ledCurrPos[1]  = ledStartPos[1];    // and reset the y-coordinate.
+            }
+            break;
+
+        default:
+            break;
     }
 
-    glPopMatrix();                          // Lastly, we restore the matrix stack.
+    glPopMatrix();                          // Lastly, we restore the original matrix stack.
 }
 
 

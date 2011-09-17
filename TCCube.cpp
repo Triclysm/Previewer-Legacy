@@ -26,7 +26,7 @@
 ///
 
 #include "TCCube.h"
-#include <assert.h>     // Used in the CheckVoxelBounds method.
+#include <cassert>      // Used in the CheckVoxelBounds method.
 
 
 ///
@@ -145,7 +145,7 @@ TCCube::~TCCube()
 ///
 /// \see AllocateCube | pCubeState
 ///
-void TCCube::ResetCubeState(bool state)
+void TCCube::ResetCubeState(byte state)
 {
     // Looping through each voxel in the cube, we set them all to the passed state.
     for (int x = 0; x < sc[0]; x++)
@@ -174,7 +174,7 @@ void TCCube::ResetCubeState(bool state)
 ///
 /// \see CheckVoxelBounds
 ///
-void TCCube::SetVoxelState(byte x, byte y, byte z, bool state)
+void TCCube::SetVoxelState(byte x, byte y, byte z, byte state)
 {
     // After checking the cube bounds, we just set the state of that voxel.
     CheckVoxelBounds(x, y, z);
@@ -193,7 +193,7 @@ void TCCube::SetVoxelState(byte x, byte y, byte z, bool state)
 ///
 /// \see CheckVoxelBounds
 ///
-void TCCube::SetVoxelState(byte cVoxel[3], bool state)
+void TCCube::SetVoxelState(byte cVoxel[3], byte state)
 {
     // After checking the cube bounds, we just set the state of that voxel.
     CheckVoxelBounds(cVoxel[0], cVoxel[1], cVoxel[2]);
@@ -214,7 +214,7 @@ void TCCube::SetVoxelState(byte cVoxel[3], bool state)
 /// \returns The state of the voxel at the passed coordinates.
 /// \see     CheckVoxelBounds
 ///
-bool TCCube::GetVoxelState(byte x, byte y, byte z)
+byte TCCube::GetVoxelState(byte x, byte y, byte z)
 {
     // After checking the cube bounds, we just return the state of that voxel.
     CheckVoxelBounds(x, y, z);
@@ -233,7 +233,7 @@ bool TCCube::GetVoxelState(byte x, byte y, byte z)
 /// \returns The state of the voxel at the passed coordinates.
 /// \see     CheckVoxelBounds
 ///
-bool TCCube::GetVoxelState(byte cVoxel[3])
+byte TCCube::GetVoxelState(byte cVoxel[3])
 {
     // After checking the cube bounds, we just return the state of that voxel.
     CheckVoxelBounds(cVoxel[0], cVoxel[1], cVoxel[2]);
@@ -256,7 +256,7 @@ bool TCCube::GetVoxelState(byte cVoxel[3])
 ///
 /// \see CheckVoxelBounds
 ///
-void TCCube::SetColumnState(byte axis, byte dim1, byte dim2, bool state)
+void TCCube::SetColumnState(byte axis, byte dim1, byte dim2, byte state)
 {
     // What we do here is first check if the passed dim1 and dim2 values are within their
     // proper ranges (depending on the axis of the column).  Then, we loop through the
@@ -304,11 +304,10 @@ void TCCube::SetColumnState(byte axis, byte dim1, byte dim2, bool state)
 ///                   (e.g. the second character from 'XYZ' if you remove the axis).
 /// \param cmpVal The value to compare the voxels in the column to.
 ///
-/// \returns True if all voxels in the column were equal to cmpVal (i.e. logical AND),
-///          returns false otherwise.
+/// \returns True if all voxels in the column were equal to cmpVal, false otherwise.
 /// \see     CheckVoxelBounds
 ///
-bool TCCube::GetColumnState(byte axis, byte dim1, byte dim2, bool cmpVal)
+bool TCCube::GetColumnState(byte axis, byte dim1, byte dim2, byte cmpVal)
 {
     // What we do here is first check if the passed dim1 and dim2 values are within their
     // proper ranges (depending on the axis of the column).  Then, we loop through the
@@ -357,7 +356,7 @@ bool TCCube::GetColumnState(byte axis, byte dim1, byte dim2, bool cmpVal)
 ///
 /// \see CheckVoxelBounds
 ///
-void TCCube::SetPlaneState(byte plane, byte offset, bool state)
+void TCCube::SetPlaneState(byte plane, byte offset, byte state)
 {
     // Similar to the SetColumnState method, what we do here is first check if the passed
     // offset value (depending on the passed plane) is within the proper range. Then, we
@@ -412,11 +411,10 @@ void TCCube::SetPlaneState(byte plane, byte offset, bool state)
 /// \param offset The offset from 0 to the size-1 of the remaining dimension.
 /// \param cmpVal The value to compare the voxels in the plane to.
 ///
-/// \returns True if all voxels in the plane were equal to cmpVal (i.e. logical AND),
-///          returns false otherwise.
+/// \returns True if all voxels in the plane were equal to cmpVal, false otherwise.
 /// \see     CheckVoxelBounds
 ///
-bool TCCube::GetPlaneState(byte plane, byte offset, bool cmpVal)
+bool TCCube::GetPlaneState(byte plane, byte offset, byte cmpVal)
 {
     // What we do here is first check if the passed offset value (depending on the passed
     // plane) is within the proper range.  Then, we loop through the two dimensions on
@@ -472,11 +470,9 @@ bool TCCube::GetPlaneState(byte plane, byte offset, bool cmpVal)
 /// \param offset  The offset (positive or negative) to shift in the plane.
 /// \param shiftIn The value that the shifted in voxels take.
 ///
-/// \returns True if all voxels in the plane were equal to cmpVal (i.e. logical AND),
-///          returns false otherwise.
-/// \see     CheckVoxelBounds
+/// \see   SetPlaneState
 ///
-void TCCube::Shift(byte plane, char offset, bool shiftIn = false)
+void TCCube::Shift(byte plane, sbyte offset, byte shiftIn)
 {
     switch (plane)
     {
@@ -720,15 +716,15 @@ void TCCube::AllocateCube(byte sizeX, byte sizeY, byte sizeZ)
 {
     // Initially, pCubeState is an array of pointers to pointers of booleans.
     // First, we need to initialize the x-dimension (pointers to pointers of booleans).
-    pCubeState = new bool**[sizeX];
+    pCubeState = new byte**[sizeX];
     for (int x = 0; x < sizeX; x++)
     {
         // Next, we initialize the y-dimension (pointers to booleans).
-        pCubeState[x] = new bool*[sizeY];
+        pCubeState[x] = new byte*[sizeY];
         for (int y = 0; y < sizeY; y++)
         {
             // Finally, we initialize the z-dimension (booleans).
-            pCubeState[x][y] = new bool[sizeZ];
+            pCubeState[x][y] = new byte[sizeZ];
         }
     }
     sc[0] = sizeX; sc[1] = sizeY; sc[2] = sizeZ;   // Finally we store the cube dimensions,

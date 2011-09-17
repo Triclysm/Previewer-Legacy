@@ -1,5 +1,4 @@
-animbase = loadfile("animbase.lua")
-animbase()
+loadfile("animbase.lua")(); SetNumColors(0)
 
 cz = 0
 cc = 1

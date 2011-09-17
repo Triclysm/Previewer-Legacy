@@ -37,9 +37,10 @@
 ///
 /// \brief Triclysm Lua Functions
 ///
-/// A namespace containing all of the functions to be exposed to Lua animations.  These
-/// functions can be registered to a given Lua state by calling the RegisterLuaCommands
-/// function in this namespace.  These functions should only be called by the Lua state.
+/// A namespace containing all of the functions to be exposed to Lua animations, which
+/// are nested within more namespaces depending on the number of animation colors. These
+/// functions can be registered to a given Lua state by calling the RegisterCommands
+/// function in the appropriate sub-namespace.
 ///
 /// \remarks Some of these functions make references to the current animation's cube state.
 ///
@@ -47,140 +48,178 @@ namespace TC_Lua_Functions
 {
     TCAnimLua *currAnim;    // Pointer to the currently registered TCAnimLua object.
 
-    int SetVoxelState(lua_State *L)
+    ///
+    /// \brief Common Lua Functions
+    ///
+    namespace Common
     {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 4)
+        int Shift(lua_State *L)
         {
-            currAnim->cubeState->SetVoxelState(
-                (byte)lua_tointeger(L, 1), 
-                (byte)lua_tointeger(L, 2),
-                (byte)lua_tointeger(L, 3),
-                ((lua_toboolean(L, 4)) ? true : false) );
-        }
-        return 0;
-    }
-
-    int GetVoxelState(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 3)
-        {
-            lua_pushboolean(L, currAnim->cubeState->GetVoxelState(
-                (byte)lua_tointeger(L, 1),
-                (byte)lua_tointeger(L, 2),
-                (byte)lua_tointeger(L, 3) ));
-            return 1;
-        }
-        else
-        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 2)
+            {
+                currAnim->cubeState[0]->Shift(
+                    (byte)lua_tointeger(L, 1), 
+                    (byte)lua_tointeger(L, 2)  );
+            }
             return 0;
         }
-    }
 
-    int SetColumnState(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 4)
+        int DoneIteration(lua_State *L)
         {
-            currAnim->cubeState->SetColumnState(
-                (byte)lua_tointeger(L, 1), 
-                (byte)lua_tointeger(L, 2),
-                (byte)lua_tointeger(L, 3),
-                ((lua_toboolean(L, 4)) ? true : false) );
-        }
-        return 0;
-    }
-
-    int GetColumnState(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 4)
-        {
-            lua_pushboolean(L, currAnim->cubeState->GetColumnState(
-                (byte)lua_tointeger(L, 1),
-                (byte)lua_tointeger(L, 2),
-                (byte)lua_tointeger(L, 3),
-                (lua_toboolean(L, 4) ? true : false) ));
-            return 1;
-        }
-        else
-        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 0)
+            {
+                currAnim->DoneIteration();
+            }
             return 0;
         }
-    }
-
-    int SetPlaneState(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 3)
-        {
-            currAnim->cubeState->SetPlaneState(
-                (byte)lua_tointeger(L, 1), 
-                (byte)lua_tointeger(L, 2),
-                ((lua_toboolean(L, 3)) ? true : false) );
-        }
-        return 0;
-    }
-
-    int GetPlaneState(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 3)
-        {
-            lua_pushboolean(L, currAnim->cubeState->GetPlaneState(
-                (byte)lua_tointeger(L, 1),
-                (byte)lua_tointeger(L, 2),
-                (lua_toboolean(L, 3) ? true : false) ));
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-
-    int Shift(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 3)
-        {
-            currAnim->cubeState->Shift(
-                (byte)lua_tointeger(L, 1), 
-                (byte)lua_tointeger(L, 2),
-                ((lua_toboolean(L, 3)) ? true : false) );
-        }
-        return 0;
-    }
     
-    int DoneIteration(lua_State *L)
-    {
-        int argc = lua_gettop(L);
-        if (currAnim != NULL && argc == 0)
+        void RegisterCommands(lua_State *L)
         {
-            currAnim->DoneIteration();
+            lua_register(L, "Shift",          Shift);
+            lua_register(L, "DoneIteration",  DoneIteration);
         }
-        return 0;
     }
     
     ///
-    /// \brief Register Lua Commands
+    /// \brief Black & White Lua Functions
     ///
-    /// Registers Lua function bindings for all of the functions present in the
-    /// TC_Lua_Functions namespace.
+    /// This namespace contains functions to be registered with the Lua state when the
+    /// animation does not use colors.
     ///
-    /// \param L The Lua state to register the functions to.
-    ///
-    void RegisterLuaCommands(lua_State *L)
+    namespace BW
     {
-        lua_register(L, "SetVoxelState",  SetVoxelState);
-        lua_register(L, "GetVoxelState",  GetVoxelState);
-        lua_register(L, "SetColumnState", SetColumnState);
-        lua_register(L, "GetColumnState", GetColumnState);
-        lua_register(L, "SetPlaneState",  SetPlaneState);
-        lua_register(L, "GetPlaneState",  GetPlaneState);
-        lua_register(L, "Shift",          Shift);
-        lua_register(L, "DoneIteration",  DoneIteration);
+        int SetVoxelState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                currAnim->cubeState[0]->SetVoxelState(
+                    (byte)lua_tointeger(L, 1), 
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    ((lua_toboolean(L, 4)) ? true : false) );
+            }
+            return 0;
+        }
+
+        int GetVoxelState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                lua_pushboolean(L, currAnim->cubeState[0]->GetVoxelState(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3) ));
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        int SetColumnState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                currAnim->cubeState[0]->SetColumnState(
+                    (byte)lua_tointeger(L, 1), 
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    ((lua_toboolean(L, 4)) ? true : false) );
+            }
+            return 0;
+        }
+
+        int GetColumnState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                lua_pushboolean(L, currAnim->cubeState[0]->GetColumnState(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    (lua_toboolean(L, 4) ? true : false) ));
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        int SetPlaneState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                currAnim->cubeState[0]->SetPlaneState(
+                    (byte)lua_tointeger(L, 1), 
+                    (byte)lua_tointeger(L, 2),
+                    ((lua_toboolean(L, 3)) ? true : false) );
+            }
+            return 0;
+        }
+
+        int GetPlaneState(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                lua_pushboolean(L, currAnim->cubeState[0]->GetPlaneState(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (lua_toboolean(L, 3) ? true : false) ));
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        void RegisterCommands(lua_State *L)
+        {
+            lua_register(L, "SetVoxelState",  SetVoxelState);
+            lua_register(L, "GetVoxelState",  GetVoxelState);
+            lua_register(L, "SetColumnState", SetColumnState);
+            lua_register(L, "GetColumnState", GetColumnState);
+            lua_register(L, "SetPlaneState",  SetPlaneState);
+            lua_register(L, "GetPlaneState",  GetPlaneState);
+        }
+    }
+    
+    ///
+    /// \brief Greyscale (Monochrome) Lua Functions
+    ///
+    /// This namespace contains functions to be registered with the Lua state when the
+    /// animation needs to use only one color.
+    ///
+    namespace Greyscale
+    {
+    
+        void RegisterCommands(lua_State *L)
+        {
+        }
+    }
+    
+    ///
+    /// \brief RGB Lua Functions
+    ///
+    /// This namespace contains functions to be registered with the Lua state when the
+    /// animation needs to use three colors.
+    ///
+    namespace RGB
+    {
+    
+        void RegisterCommands(lua_State *L)
+        {
+        }
     }
 }
 
@@ -229,15 +268,52 @@ TCAnim *LuaAnimLoader(char const *fname, int argc, int *argv)
         lua_close(pLuaState);
         return NULL;
     }
-    // We can also register the Lua functions to the Lua state.
-    TC_Lua_Functions::RegisterLuaCommands(pLuaState);
+    // Now, we check the value of _setColors to see if the number of colors was set.
+    lua_getglobal(pLuaState, "_setColors");
+    if (!lua_toboolean(pLuaState, -1))
+    {
+        WriteOutput("Error - number of colors in animation is not set. "
+                    "Ensure that you have called SetNumColors in your animation file.");
+        lua_close(pLuaState);
+        return NULL;
+    }
+    lua_pop(pLuaState, 1);  // We have to pop the value off of the Lua stack.
+    // Next, we get the actual number of colors.
+    lua_getglobal(pLuaState, "_numColors");
+    int _numColors = lua_tointeger(pLuaState, -1);
+    // So, if the number of colors was not set to 0, 1, or 3...
+    if (_numColors != 0 && _numColors != 1 && _numColors != 3)
+    {
+        WriteOutput("Error - animation has unsupported number of colors. "
+                    "Valid numbers of colors are 0, 1, and 3.");
+        lua_close(pLuaState);
+        return NULL;
+    }
+    lua_pop(pLuaState, 1);  // Again, we have to pop the value off of the Lua stack.
+    // Now that we have the number of colors, we can register the appropriate Lua commands
+    // (as well as the common commands) to the animation's Lua state.
+    TC_Lua_Functions::Common::RegisterCommands(pLuaState);
+    switch (_numColors)
+    {
+        case 0:
+            TC_Lua_Functions::BW::RegisterCommands(pLuaState);
+            break;
+        case 1:
+            TC_Lua_Functions::Greyscale::RegisterCommands(pLuaState);
+            break;
+        case 3:
+            TC_Lua_Functions::RGB::RegisterCommands(pLuaState);
+            break;
+        default:
+            break;
+    }
     // Next, we initialize the object so that the registered functions are valid.  We also
     // delete the object if we need to quit (since lua_close is called in the destructor).
-    toReturn = new TCAnimLua(cubeSize, pLuaState);
+    toReturn = new TCAnimLua(cubeSize, _numColors, pLuaState);
     // We also store the pointer for use with the registered commands in TC_Lua_Functions.
     TC_Lua_Functions::currAnim = toReturn;
     // Now, we attempt to call the InitSize function (which is in animbase.lua).
-    lua_getglobal(pLuaState, "InitSize");
+    lua_getglobal(pLuaState, "_InitSize");
     if (!lua_isfunction(pLuaState, -1))     // If the function does not exist...
     {
         // We output an error to the console, close the Lua state, and return NULL.
@@ -315,7 +391,8 @@ TCAnim *LuaAnimLoader(char const *fname, int argc, int *argv)
 ///
 /// \see LuaAnimLoader
 ///
-TCAnimLua::TCAnimLua(byte tccSize[3], lua_State *luaStateAnim) : TCAnim(tccSize)
+TCAnimLua::TCAnimLua(byte tccSize[3], byte colors, lua_State *luaStateAnim)
+    : TCAnim(tccSize, colors)
 {
     pLuaState = luaStateAnim;
 }
