@@ -315,5 +315,9 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             //SetAnim(new TCAnimLua(cubeSize, "tcal/sendplane.lua", 0, args));
             SetAnim(LuaAnimLoader("animations/sendplane.lua", 0, NULL));
             break;*/
+
+        case SDLK_a:
+            CallCommand("loadanim sendplane.lua");
+            break;
     }
 }

@@ -47,7 +47,7 @@ TCAnim *LuaAnimLoader(char const *fname, int argc, int *argv);
 class TCAnimLua : public TCAnim
 {
   public:
-    TCAnimLua(byte tccSize[3], lua_State *luaStateAnim);  // Constructor.
+    TCAnimLua(byte tccSize[3], byte colors, lua_State *luaStateAnim);  // Constructor.
     ~TCAnimLua();                                         // Destructor.
     void DoneIteration();                                 // Increments iteration count.
   private:

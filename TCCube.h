@@ -66,20 +66,20 @@ class TCCube
     TCCube(const TCCube &toCopy);                   // Copy constructor.
     ~TCCube();                                      // TCCube destructor.
 
-    void ResetCubeState(bool state = false);        // Resets all voxels in the cube.
+    void ResetCubeState(byte state = 0);            // Resets all voxels in the cube.
 
     // State setting and getting methods:
-    void SetVoxelState(byte x, byte y, byte z, bool state);
-    void SetVoxelState(byte cVoxel[3], bool state);
-    bool GetVoxelState(byte x, byte y, byte z);
-    bool GetVoxelState(byte cVoxel[3]);
-    void SetColumnState(byte axis, byte dim1, byte dim2, bool state);
-    bool GetColumnState(byte axis, byte dim1, byte dim2, bool cmpVal);
-    void SetPlaneState(byte plane, byte offset, bool state);
-    bool GetPlaneState(byte plane, byte offset, bool cmpVal);
+    void SetVoxelState(byte x, byte y, byte z, byte state);
+    void SetVoxelState(byte cVoxel[3], byte state);
+    byte GetVoxelState(byte x, byte y, byte z);
+    byte GetVoxelState(byte cVoxel[3]);
+    void SetColumnState(byte axis, byte dim1, byte dim2, byte state);
+    bool GetColumnState(byte axis, byte dim1, byte dim2, byte cmpVal);
+    void SetPlaneState(byte plane, byte offset, byte state);
+    bool GetPlaneState(byte plane, byte offset, byte cmpVal);
     
     // Shifts contents of the cube in the specified plane by the specified axis.
-    void Shift(byte plane, char offset, bool shiftIn);
+    void Shift(byte plane, sbyte offset, byte shiftIn = 0x00);
 
     // Cube operators:
     void OP_AND(const TCCube &ref);
@@ -96,7 +96,7 @@ class TCCube
     /// \brief Three-dimensional array holding the state of each voxel.
     ///
     /// Dynamically allocated when the TCCube object constructor is called.
-    bool ***pCubeState;
+    byte ***pCubeState;
     /// \brief Array holding the number of cube voxels in each dimension.
     ///
     /// Each dimension is consistent with the axis definitions (e.g. TC_X_AXIS) at the top

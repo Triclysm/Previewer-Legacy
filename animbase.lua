@@ -30,9 +30,16 @@ YZ_PLANE = 0    -- Represents the yz-plane.
 ZX_PLANE = 1    -- Represents the zx-plane.
 XY_PLANE = 2    -- Represents the xy-plane.
 
-sx = 0          -- The cube size in the x-dimension (set by InitSize).
-sy = 0          -- The cube size in the y-dimension (set by InitSize).
-sz = 0          -- The cube size in the z-dimension (set by InitSize).
+COLOR_R  = 0    -- Represents the color red.
+COLOR_G  = 1    -- Represents the color green.
+COLOR_B  = 2    -- Represents the color blue.
+
+sx = 0              -- The cube size in the x-dimension (set by InitSize).
+sy = 0              -- The cube size in the y-dimension (set by InitSize).
+sz = 0              -- The cube size in the z-dimension (set by InitSize).
+
+_numColors = -1     -- The number of colors of the animation (set by SetNumColors).
+_setColors = false  -- Set to true after the call of SetNumColors.
 
 OAXIS              = {}         -- The other axis helper.  Allows you to retrieve the 
 OAXIS[YZ_PLANE]    = {}         -- constant representing the two axis given a specified
@@ -55,8 +62,17 @@ OAXIS[XY_PLANE][1] = Y_AXIS
 
 
 -- Called when the animation is created, this stores the cube size in the above variables.
-function InitSize(sizeX, sizeY, sizeZ)
+function _InitSize(sizeX, sizeY, sizeZ)
     sx = sizeX
     sy = sizeY
     sz = sizeZ
+end
+
+-- Sets the number of colors in the animation.  Must be called once, all subsequent calls
+-- are simply ignored.
+function SetNumColors(colors)
+    if not _setColors then
+        _numColors = colors
+        _setColors = true
+    end
 end
