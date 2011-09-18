@@ -202,9 +202,41 @@ namespace TC_Lua_Functions
     ///
     namespace Greyscale
     {
+        int SetVoxelValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                currAnim->SetVoxelColor(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    (byte)lua_tointeger(L, 4) );
+            }
+            return 0;
+        }
+        
+        int GetVoxelValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                lua_pushinteger(L, currAnim->cubeState[0]->GetVoxelState(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3) ));
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
     
         void RegisterCommands(lua_State *L)
         {
+            lua_register(L, "SetVoxelValue", SetVoxelValue);
+            lua_register(L, "GetVoxelValue", GetVoxelValue);
         }
     }
     
@@ -216,9 +248,39 @@ namespace TC_Lua_Functions
     ///
     namespace RGB
     {
-    
+        int SetVoxelColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL)
+            {
+                switch (argc)
+                {
+                    case 4:     // x, y, z, RGB
+                        currAnim->SetVoxelColor(
+                            (byte)lua_tointeger(L, 1),
+                            (byte)lua_tointeger(L, 2),
+                            (byte)lua_tointeger(L, 3),
+                            (ulint)lua_tointeger(L, 4) );
+                        break;
+                    case 6:     // x, y, z, r, g, b
+                        currAnim->SetVoxelColor(
+                            (byte)lua_tointeger(L, 1),
+                            (byte)lua_tointeger(L, 2),
+                            (byte)lua_tointeger(L, 3),
+                            (byte)lua_tointeger(L, 4),
+                            (byte)lua_tointeger(L, 5),
+                            (byte)lua_tointeger(L, 6) );
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return 0;
+        }
+        
         void RegisterCommands(lua_State *L)
         {
+            lua_register(L, "SetVoxelColor", SetVoxelColor);
         }
     }
 }

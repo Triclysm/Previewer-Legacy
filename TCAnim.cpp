@@ -267,8 +267,8 @@ void TCAnim::SetVoxelColor(byte x, byte y, byte z, ulint rgbColorValue)
 {
     SetVoxelColor(x, y, z,
         (byte)((rgbColorValue & 0xFF0000) >> 16), 
-        (byte)((rgbColorValue & 0xFF0000) >>  8), 
-        (byte)((rgbColorValue & 0xFF0000)) );
+        (byte)((rgbColorValue & 0x00FF00) >>  8), 
+        (byte)((rgbColorValue & 0x0000FF)) );
 }
 
 
