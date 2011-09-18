@@ -190,42 +190,6 @@ void Resize(GLint width, GLint height)
 
 
 ///
-/// \brief Change LED Color
-///
-/// Changes the color of the specified LED, and regenerates the LED display lists to
-/// reflect the change.
-/// 
-/// \param numColors The number of colors in the newColor array (valid values are 3 or 4).
-/// \param newColor  An array of integers from 0-255 
-/// \param off       Set true to set the color of the off LED (false by default).
-///
-void ChangeLedColor(int numColors, int newColor[], bool off)
-{
-    if (numColors == 3 || numColors == 4)
-    {
-        if (off)
-        {
-            for (int i = 0; i < numColors; i++)
-            {
-                colLedOff[i] = newColor[i] / 255.0f;
-            }
-            if (numColors == 3) colLedOff[3] = 1.0f;
-
-        }
-        else
-        {
-            for (int i = 0; i < numColors; i++)
-            {
-                colLedOn[i] = newColor[i] / 255.0f;
-            }
-            if (numColors == 3) colLedOn[3] = 1.0f;
-        }
-        InitDisplayLists();
-    }
-}
-
-
-///
 /// \brief Render Scene
 ///
 /// Performs the main flow of control when rendering the OpenGL scene.  This function
