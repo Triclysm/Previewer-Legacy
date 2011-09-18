@@ -34,6 +34,9 @@ COLOR_R  = 0    -- Represents the color red.
 COLOR_G  = 1    -- Represents the color green.
 COLOR_B  = 2    -- Represents the color blue.
 
+RGB_VALS = -1   --
+RGB_HEX  = -2   --
+
 sx = 0              -- The cube size in the x-dimension (set by InitSize).
 sy = 0              -- The cube size in the y-dimension (set by InitSize).
 sz = 0              -- The cube size in the z-dimension (set by InitSize).
