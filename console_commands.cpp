@@ -497,7 +497,20 @@ void color(std::vector<std::string> const& argv)
         }
         if (validColor)
         {
-            ChangeLedColor(numColors, newColor, offLed);
+            if (offLed)
+            {
+                for (int i = 0; i < numColors; i++)
+                {
+                    colLedOff[i] = newColor[i] / 255.0f;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < numColors; i++)
+                {
+                    colLedOn[i] = newColor[i] / 255.0f;
+                }
+            }
         }
         else
         {
@@ -672,10 +685,11 @@ void RegisterCommands()
         "Help entry not done."));
 
     cmdList.push_back(new ConsoleCommand("color", color,
-        "Sets the color of the on or off LEDs.  Values should be passed in R G B format, from 0 to 255. Examples:\n"
+        "Sets the color of the on or off LEDs.  Values should be passed in RGB or RGBA format, from 0 to 255. Examples:\n"
         "  color 255 0 0            Sets the color of the on LEDs to red.\n"
         "  color -on 0 0 255        Sets the color of the on LEDs to blue.\n"
-        "  color -off 0 255 0       Sets the color of the off LEDs to green."));
+        "  color -off 0 255 0 127   Sets the color of the off LEDs to green at 50% transparency.\n"
+        "If the alpha parameter is unspecified, it is not modified in the new color."));
 
 /*    cmdList.push_back(new ConsoleCommand("sendplane", sendplane,
         ""));

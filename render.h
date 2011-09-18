@@ -87,7 +87,6 @@ void   InitFont();
 void   Resize(int width, int height);
 void   RenderScene();
 void   SetFpsLimit(Uint16 maxFps);
-void   ChangeLedColor(int numColors, int newColor[], bool off);
 
 void   ProjModeBegin();
 void   ProjModeEnd();
