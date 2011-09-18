@@ -66,7 +66,7 @@ public:
     void SetVoxelColor(byte x, byte y, byte z, byte grey);
     void SetVoxelColor(byte x, byte y, byte z, byte r, byte g, byte b);
     void SetVoxelColor(byte x, byte y, byte z, ulint rgbColorValue);
-    byte *GetVoxelColor(byte x, byte y, byte z);
+    ulint GetVoxelColor(byte x, byte y, byte z);
     
     void SetColumnColor(byte axis, byte dim1, byte dim2, byte grey);
     void SetColumnColor(byte axis, byte dim1, byte dim2, byte r, byte g, byte b);

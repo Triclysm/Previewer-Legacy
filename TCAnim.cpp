@@ -273,37 +273,44 @@ void TCAnim::SetVoxelColor(byte x, byte y, byte z, ulint rgbColorValue)
 
 
 ///
-/// \brief Get Voxel Color (Array)
+/// \brief Get Voxel Color (Hexadecimal)
 ///
-/// Returns the color of the passed voxel as an array.  The number of dimensions in the
-/// array is equal to the number of colors in the animation.  The return value should be
-/// deleted with the delete or delete[] operator after it is not needed.
+/// Returns the color of the passed voxel as a hexadecimal value (e.g. 0xFEFDFC).
 ///
-/// \param x          The x-coordinate in three-space.
-/// \param y          The y-coordinate in three-space.
-/// \param z          The z-coordinate in three-space.
+/// \param x The x-coordinate in three-space.
+/// \param y The y-coordinate in three-space.
+/// \param z The z-coordinate in three-space.
 ///
-/// \returns A pointer to an array containing each color value of the voxel.
+/// \returns An unsigned integer with the lower 24-bits corresponding to the voxel color.
 ///
-/// \remarks If numColors is 0, this function will return a NULL pointer.
+/// \remarks If numColors is 0, this function returns 1 for a lit voxel (0 otherwise).
+///          If numColors is 1, the value returned will be greyscale.
 ///
-byte* TCAnim::GetVoxelColor(byte x, byte y, byte z)
+ulint TCAnim::GetVoxelColor(byte x, byte y, byte z)
 {
-    byte *toReturn = NULL;
+    ulint toReturn;
+    byte  voxelValue;
     switch (numColors)
     {
+        case 0:
+            toReturn = (cubeState[0]->GetVoxelState(x, y, z) == 0x00) ? 0x00 : 0x01;
+            break;
         case 1:
-            toReturn = new byte;
-            *toReturn = cubeState[0]->GetVoxelState(x, y, z);
+            voxelValue = cubeState[0]->GetVoxelState(x, y, z);
+            toReturn = voxelValue;
+            toReturn = toReturn & (voxelValue <<  8);
+            toReturn = toReturn & (voxelValue << 16);
             break;
         case 3:
-            toReturn = new byte[3];
-            toReturn[TC_COLOR_R] = cubeState[TC_COLOR_R]->GetVoxelState(x, y, z);
-            toReturn[TC_COLOR_R] = cubeState[TC_COLOR_R]->GetVoxelState(x, y, z);
-            toReturn[TC_COLOR_R] = cubeState[TC_COLOR_R]->GetVoxelState(x, y, z);
+            voxelValue = cubeState[TC_COLOR_R]->GetVoxelState(x, y, z);
+            toReturn = (voxelValue << 16);
+            voxelValue = cubeState[TC_COLOR_G]->GetVoxelState(x, y, z);
+            toReturn = toReturn & (voxelValue << 8);
+            voxelValue = cubeState[TC_COLOR_G]->GetVoxelState(x, y, z);
+            toReturn = toReturn & voxelValue;
             break;
         default:
-            toReturn = NULL;
+            return 0;
             break;
     }
     return toReturn;

@@ -31,7 +31,8 @@
 #include <string>           // String object library.
 #include "main.h"           // Used to access the global cube size.
 #include "console.h"        // Used to print error messages to the console.
-#include "TCAnimLua.h"
+#include "TCAnim.h"         // The base TCAnim object header.
+#include "TCAnimLua.h"      // Definition of the TCAnimLua class.
 
 
 ///
@@ -58,7 +59,7 @@ namespace TC_Lua_Functions
             int argc = lua_gettop(L);
             if (currAnim != NULL && argc == 2)
             {
-                currAnim->cubeState[0]->Shift(
+                currAnim->Shift(
                     (byte)lua_tointeger(L, 1), 
                     (byte)lua_tointeger(L, 2)  );
             }
@@ -278,9 +279,55 @@ namespace TC_Lua_Functions
             return 0;
         }
         
+        int GetVoxelColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc != 3 && argc != 4) return 0;
+            // Set the mode based on the 4th argument (default to RGB_VALS).
+            int mode = (argc == 4) ? lua_tointeger(L, 4) : -2;
+
+            if (currAnim != NULL)
+            {
+                if (mode == -2)
+                {
+                    lua_pushinteger(L, currAnim->GetVoxelColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3) ));
+                    return 1;
+                }
+                else if (mode == -1)
+                {
+                    byte x = (byte)lua_tointeger(L, 1),
+                         y = (byte)lua_tointeger(L, 2),
+                         z = (byte)lua_tointeger(L, 3);
+                    lua_pushinteger(L,
+                        currAnim->cubeState[0]->GetVoxelState(x, y, z));
+                    lua_pushinteger(L,
+                        currAnim->cubeState[1]->GetVoxelState(x, y, z));
+                    lua_pushinteger(L,
+                        currAnim->cubeState[2]->GetVoxelState(x, y, z));
+                    return 3;
+                }
+                else if ( mode == TC_COLOR_R ||
+                          mode == TC_COLOR_G ||
+                          mode == TC_COLOR_B )
+                {
+                    lua_pushinteger(L,
+                        currAnim->cubeState[mode]->GetVoxelState(
+                            (byte)lua_tointeger(L, 1),
+                            (byte)lua_tointeger(L, 2),
+                            (byte)lua_tointeger(L, 3) ));
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        
         void RegisterCommands(lua_State *L)
         {
             lua_register(L, "SetVoxelColor", SetVoxelColor);
+            lua_register(L, "GetVoxelColor", GetVoxelColor);
         }
     }
 }
