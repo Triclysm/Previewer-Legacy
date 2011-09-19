@@ -30,9 +30,9 @@
 #define TC_CUBE_
 
 // Axis Definitions
-#define TC_X_AXIS  0            ///< Specifies the x-axis.
-#define TC_Y_AXIS  1            ///< Specifies the y-axis.
-#define TC_Z_AXIS  2            ///< Specifies the z-axis.
+#define TC_X_AXIS   0           ///< Specifies the x-axis.
+#define TC_Y_AXIS   1           ///< Specifies the y-axis.
+#define TC_Z_AXIS   2           ///< Specifies the z-axis.
 
 // Plane Definitions
 #define TC_YZ_PLANE 0           ///< Specifies the yz-plane.

@@ -75,11 +75,22 @@ namespace TC_Lua_Functions
             }
             return 0;
         }
+
+        int WriteConsole(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc == 1)
+            {
+                WriteOutput(lua_tostring(L, 1));
+            }
+            return 0;
+        }
     
         void RegisterCommands(lua_State *L)
         {
-            lua_register(L, "Shift",          Shift);
-            lua_register(L, "DoneIteration",  DoneIteration);
+            lua_register(L, "Shift",         Shift);
+            lua_register(L, "DoneIteration", DoneIteration);
+            lua_register(L, "WriteConsole",  WriteConsole);
         }
     }
     
@@ -283,7 +294,7 @@ namespace TC_Lua_Functions
         {
             int argc = lua_gettop(L);
             if (argc != 3 && argc != 4) return 0;
-            // Set the mode based on the 4th argument (default to RGB_VALS).
+            // Set the mode based on the 4th argument (default to RGB_HEX).
             int mode = (argc == 4) ? lua_tointeger(L, 4) : -2;
 
             if (currAnim != NULL)
@@ -323,11 +334,39 @@ namespace TC_Lua_Functions
             }
             return 0;
         }
+
+        int ComparePlaneColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc != 3 && argc != 5) return 0;
+            if (currAnim != NULL)
+            {
+                if (argc == 3)
+                {
+                    lua_pushboolean(L, currAnim->ComparePlaneColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (ulint)lua_tointeger(L, 3)));
+                }
+                else
+                {
+                    lua_pushboolean(L, currAnim->ComparePlaneColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (byte)lua_tointeger(L, 4),
+                        (byte)lua_tointeger(L, 5)));
+                }
+                return 1;
+            }
+            return 0;
+        }
         
         void RegisterCommands(lua_State *L)
         {
             lua_register(L, "SetVoxelColor", SetVoxelColor);
             lua_register(L, "GetVoxelColor", GetVoxelColor);
+            lua_register(L, "ComparePlaneColor", ComparePlaneColor);
         }
     }
 }
@@ -465,8 +504,8 @@ TCAnim *LuaAnimLoader(char const *fname, int argc, int *argv)
     if (!lua_toboolean(pLuaState, -1))      // If Initialize returned false...
     {
         // We output an error to the console, close the Lua state, and return NULL.
-        WriteOutput("Error - call to Initialize failed (returned false). "
-                    "Ensure that the values of the arguments are correct.");
+        WriteOutput("Error - call to Initialize failed (returned false). See above for "
+                    "additional information (if applicable).");
         delete toReturn;
         TC_Lua_Functions::currAnim = NULL;
         return NULL;

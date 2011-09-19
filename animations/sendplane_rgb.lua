@@ -1,4 +1,4 @@
-loadfile("animbase.lua")(); SetNumColors(0)
+loadfile("animbase.lua")(); SetNumColors(3)
 
 cx = 0
 cy = 0
@@ -6,19 +6,19 @@ cz = 0
 
 function Initialize()
     math.randomseed(os.time())
-    SetPlaneState(XY_PLANE, 0, true)
+    SetPlaneRandom(0)
     GetNextRandVoxel(0)
-    WriteConsole("Loaded sendplane.lua v0.1.");
     return true
 end
 
 function GetNextRandVoxel(offset)
-    if not GetPlaneState(XY_PLANE, offset, false) then
+    if not ComparePlaneColor(XY_PLANE, offset, 0x000000) then
+        print(cz)
         cz = offset
         repeat
             cx = math.random(0, sx - 1)
             cy = math.random(0, sy - 1)
-        until GetVoxelState(cx, cy, cz)
+        until (GetVoxelColor(cx, cy, cz, RGB_HEX) ~= 0x000000)
         return true
     else
         return false
@@ -26,15 +26,32 @@ function GetNextRandVoxel(offset)
 end
 
 
+function GetRandomColor()
+    return math.random(0, 0xFFFFFF)
+end
+
+
+function SetPlaneRandom(offset)
+    for x = 0, (sx - 1) do
+        for y = 0, (sy - 1) do
+            SetVoxelColor(x, y, offset, GetRandomColor())
+        end
+    end
+end
+
 cdir = 1
 
 function Update()
+    tmpVoxelColor = GetVoxelColor(cx, cy, cz, RGB_HEX)
+    print(tmpVoxelColor)
     if (cz < (sz - 1) and cdir == 1) or (cz > 0 and cdir == -1) then
-        SetVoxelState(cx, cy, cz, false);
+        SetVoxelColor(cx, cy, cz, 0x000000)
+    else
+        SetVoxelColor(cx, cy, cz, GetRandomColor())
     end
     cz = cz + cdir
     if (cz < sz) and (cz >= 0) then
-        SetVoxelState(cx, cy, cz, true);
+        SetVoxelColor(cx, cy, cz, tmpVoxelColor);
     else
         if (cdir == 1) then
             if not GetNextRandVoxel(0) then
