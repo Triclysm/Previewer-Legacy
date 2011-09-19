@@ -63,9 +63,9 @@ public:
     byte         GetNumColors();    // Returns the number of colors in the animation.
 
     // Voxel color setting functions:
-    void SetVoxelColor(byte x, byte y, byte z, byte grey);
-    void SetVoxelColor(byte x, byte y, byte z, byte r, byte g, byte b);
-    void SetVoxelColor(byte x, byte y, byte z, ulint rgbColorValue);
+    void  SetVoxelColor(byte x, byte y, byte z, byte grey);
+    void  SetVoxelColor(byte x, byte y, byte z, byte r, byte g, byte b);
+    void  SetVoxelColor(byte x, byte y, byte z, ulint rgbColorValue);
     ulint GetVoxelColor(byte x, byte y, byte z);
     
     void SetColumnColor(byte axis, byte dim1, byte dim2, byte grey);
@@ -76,6 +76,10 @@ public:
     void SetPlaneColor(byte plane, byte offset, byte r, byte g, byte b);
     void SetPlaneColor(byte plane, byte offset, ulint rgbColorValue);
 
+    bool ComparePlaneColor(byte plane, byte offset, byte grey = 0);
+    bool ComparePlaneColor(byte plane, byte offset, byte r = 0, byte g = 0, byte b = 0);
+    bool ComparePlaneColor(byte plane, byte offset, ulint rgbColorValue = 0x000000);
+    
     void Shift(byte plane, sbyte offset);
 
     /// \brief TCCube object holding the current state of the animation.

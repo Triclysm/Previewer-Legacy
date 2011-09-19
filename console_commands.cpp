@@ -465,6 +465,7 @@ void color(std::vector<std::string> const& argv)
     // So, if we have 4 or 5 arguments, and the first argument is a switch...
     if ((argv.size() == 4 || argv.size() == 5) && argv[0][0] == '-')
     {
+        argOffset = 1;
         if (argv[0] == "-on")
         {
             offLed = false;
@@ -477,7 +478,6 @@ void color(std::vector<std::string> const& argv)
         {
             WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
         }
-        argOffset = 1;
     }
     // So, if we have the proper number of colours...
     int numColors = argv.size() - argOffset;

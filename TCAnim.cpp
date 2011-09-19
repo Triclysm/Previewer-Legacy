@@ -297,17 +297,15 @@ ulint TCAnim::GetVoxelColor(byte x, byte y, byte z)
             break;
         case 1:
             voxelValue = cubeState[0]->GetVoxelState(x, y, z);
-            toReturn = voxelValue;
-            toReturn = toReturn & (voxelValue <<  8);
-            toReturn = toReturn & (voxelValue << 16);
+            toReturn = voxelValue | (voxelValue <<  8) | (voxelValue << 16);
             break;
         case 3:
             voxelValue = cubeState[TC_COLOR_R]->GetVoxelState(x, y, z);
             toReturn = (voxelValue << 16);
             voxelValue = cubeState[TC_COLOR_G]->GetVoxelState(x, y, z);
-            toReturn = toReturn & (voxelValue << 8);
-            voxelValue = cubeState[TC_COLOR_G]->GetVoxelState(x, y, z);
-            toReturn = toReturn & voxelValue;
+            toReturn = toReturn | (voxelValue << 8);
+            voxelValue = cubeState[TC_COLOR_B]->GetVoxelState(x, y, z);
+            toReturn = toReturn | voxelValue;
             break;
         default:
             return 0;
@@ -409,8 +407,8 @@ void TCAnim::SetColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue
 {
     SetVoxelColor(axis, dim1, dim2,
         (byte)((rgbColorValue & 0xFF0000) >> 16), 
-        (byte)((rgbColorValue & 0xFF0000) >>  8), 
-        (byte)((rgbColorValue & 0xFF0000)) );
+        (byte)((rgbColorValue & 0x00FF00) >>  8), 
+        (byte)((rgbColorValue & 0x0000FF)) );
 }
 
 
@@ -500,8 +498,110 @@ void TCAnim::SetPlaneColor(byte plane, byte offset, ulint rgbColorValue)
 {
     SetPlaneColor(plane, offset,
         (byte)((rgbColorValue & 0xFF0000) >> 16), 
-        (byte)((rgbColorValue & 0xFF0000) >>  8), 
-        (byte)((rgbColorValue & 0xFF0000)) );
+        (byte)((rgbColorValue & 0x00FF00) >>  8), 
+        (byte)((rgbColorValue & 0x0000FF)) );
+}
+
+
+///
+/// \brief Compare Plane Color (Greyscale)
+///
+/// Checks all voxels in the specified plane to see if they match the comparison value.
+///
+/// \param plane  The plane to compare the color of the voxels in (either TC_XY_PLANE,
+///               TC_ZX_PLANE, or TC_YZ_PLANE).
+/// \param offset The offset from 0 to the size-1 of the remaining dimension.
+/// \param grey   The greyscale value (0-255) to set the plane to.
+///
+/// \returns True if all voxels in the plane match the passed color, false otherwise.
+///
+/// \remarks If numColors is 0, any comparison values > 0 are said to be on.
+///          If numColors is 3, each R/G/B color value is compared to the grey value.
+///
+bool TCAnim::ComparePlaneColor(byte plane, byte offset, byte grey)
+{
+    bool returnVal = false;
+    switch (numColors)
+    {
+        case 0:
+            returnVal = cubeState[0]->GetPlaneState(plane, offset,
+                (grey == 0x00) ? 0x00 : 0x01);
+            break;
+        case 1:
+            returnVal = cubeState[0]->GetPlaneState(plane, offset, grey);
+            break;
+        case 3:
+            returnVal = cubeState[0]->GetPlaneState(plane, offset, grey) &&
+                        cubeState[1]->GetPlaneState(plane, offset, grey) &&
+                        cubeState[2]->GetPlaneState(plane, offset, grey);
+            break;
+        default:
+            break;
+    }
+    return returnVal;
+}
+
+
+///
+/// \brief Compare Plane Color (RGB Values)
+///
+/// Checks all voxels in the specified plane to see if they match the comparison colors.
+///
+/// \param plane  The plane to compare the color of the voxels in (either TC_XY_PLANE,
+///               TC_ZX_PLANE, or TC_YZ_PLANE).
+/// \param offset The offset from 0 to the size-1 of the remaining dimension.
+/// \param r      The value (0-255) of the red color.
+/// \param g      The value (0-255) of the green color.
+/// \param b      The value (0-255) of the blue color.
+///
+/// \returns True if all voxels in the plane match the passed color, false otherwise.
+///
+/// \remarks If numColors is 0, any comparison values > 0 are said to be on.
+///          If numColors is 1, the voxel color is compared to the average of r, g, and b.
+///
+bool TCAnim::ComparePlaneColor(byte plane, byte offset, byte r, byte g, byte b)
+{
+    bool toReturn = false;
+    switch (numColors)
+    {
+        case 0:
+            toReturn = cubeState[0]->GetPlaneState(plane, offset,
+                (r == 0x00 && g == 0x00 && b == 0x00) ? 0x00 : 0x01);
+            break;
+        case 1:
+            toReturn = cubeState[0]->GetPlaneState(plane, offset, (r + g + b) / 3);
+            break;
+        case 3:
+            toReturn = cubeState[TC_COLOR_R]->GetPlaneState(plane, offset, r) &&
+                       cubeState[TC_COLOR_G]->GetPlaneState(plane, offset, g) &&
+                       cubeState[TC_COLOR_B]->GetPlaneState(plane, offset, b);
+            break;
+        default:
+            break;
+    }
+    return toReturn;
+}
+
+
+///
+/// \brief Compare Plane Color (RGB Hexadecimal)
+///
+/// Checks all voxels in the specified plane to see if they match the comparison colors.
+///
+/// \param plane         The plane to compare the color of the voxels in (either
+///                      TC_XY_PLANE, TC_ZX_PLANE, or TC_YZ_PLANE).
+/// \param offset        The offset from 0 to the size-1 of the remaining dimension.
+/// \param rgbColorValue The hexadecimal RGB color value (as a 32-bit integer).  Only the
+///                      lower 24-bits are considered (the remaining bits are masked off)
+///
+/// \returns True if all voxels in the plane match the passed color, false otherwise.
+///
+bool TCAnim::ComparePlaneColor(byte plane, byte offset, ulint rgbColorValue)
+{
+    return ComparePlaneColor(plane, offset,
+        (byte)((rgbColorValue & 0xFF0000) >> 16), 
+        (byte)((rgbColorValue & 0x00FF00) >>  8), 
+        (byte)((rgbColorValue & 0x0000FF)) );
 }
 
 
