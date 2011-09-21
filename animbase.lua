@@ -5,8 +5,8 @@
 -- *                                                                                     *
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 -- *                                                                                     *
--- *  This file contains the basic required initialization for an animation, as well as  *
--- *  any constants which can be used with the cube modifying functions.                 *
+-- *  This file contains the basic functions for initializing an animation, as well as   *
+-- *  any constants that can be used with functions registered to the Lua animation.     *
 -- *                                                                                     *
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 -- *                                                                                     *
@@ -63,7 +63,6 @@ OAXIS[XY_PLANE][1] = Y_AXIS
 -- *                                      FUNCTIONS                                      *
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-
 -- Called when the animation is created, this stores the cube size in the above variables.
 function _InitSize(sizeX, sizeY, sizeZ)
     sx = sizeX
@@ -71,8 +70,8 @@ function _InitSize(sizeX, sizeY, sizeZ)
     sz = sizeZ
 end
 
--- Sets the number of colors in the animation.  Must be called once, all subsequent calls
--- are simply ignored.
+-- Sets the number of colors in the animation.  Must be called at least once, and all
+-- subsequent calls are simply ignored.
 function SetNumColors(colors)
     if not _setColors then
         _numColors = colors

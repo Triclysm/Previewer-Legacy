@@ -373,32 +373,6 @@ void list(std::vector<std::string> const& argv)
     }
 }
 
-/*void sendplane(std::vector<std::string> const& argv)
-{
-    SetAnim(new TCAL_SendPlane(cubeSize, TC_XY_PLANE, 1, true, false));
-}*/
-
-/*void rain(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 1)
-    {
-        std::stringstream dropsStr(argv[0]);
-        Uint16 newDrops;
-        if (!(dropsStr >> newDrops) || newDrops == 0 || newDrops > 255)
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-        else
-        {
-            SetAnim(new TCAL_Rain(cubeSize, TC_XY_PLANE, true, (byte)newDrops));
-        }
-    }
-    else
-    {
-        TCC_ERROR::WrongArgCount(argv.size(), 1);
-    }
-}*/
-
 void fpsmax(std::vector<std::string> const& argv)
 {
     if (argv.size() == 1)
@@ -521,36 +495,6 @@ void color(std::vector<std::string> const& argv)
     {
         WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
     }
-    /*
-    if (argv.size() == 3 || argv.size() == 4)
-    {
-        W
-    }
-    if (argv.size() == 4)
-    {
-        std::stringstream newColStr[4] = { std::stringstream(argv[0]),
-                                           std::stringstream(argv[1]),
-                                           std::stringstream(argv[2]),
-                                           std::stringstream(argv[3]) };
-        Uint16 newColVal[4];
-        if ( !(newColStr[0] >> newColVal[0]) || newColVal[0] < 0 || newColVal[0] > 255 ||
-             !(newColStr[1] >> newColVal[1]) || newColVal[1] < 0 || newColVal[1] > 255 ||
-             !(newColStr[2] >> newColVal[2]) || newColVal[2] < 0 || newColVal[2] > 255 ||
-             !(newColStr[3] >> newColVal[3]) || newColVal[3] < 0 || newColVal[3] > 255 )
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-        else
-        {
-            SetCubeSize((byte)newSize[0], (byte)newSize[1], (byte)newSize[2]);
-        }
-    }
-    else
-    {
-        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
-    }*/
-    //Uint16 x[] = {255, 0, 0};
-    //ChangeLedColor(3, x, false);
 }
 
 void tickrate(std::vector<std::string> const& argv)
