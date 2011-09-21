@@ -99,6 +99,7 @@ const Uint32 cursorFlashRate = 600; ///< Rate at which the console cursor is fla
 void InitGL()
 {
     glEnable(GL_BLEND);             // Next, we enable blending and set the blending mode.
+    glEnable(GL_DEPTH);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     dlistLed = glGenLists(1);       // Next, we create the LED display list,
     InitDisplayLists();             // and generate/initialize the new list.
@@ -184,7 +185,7 @@ void Resize(GLint width, GLint height)
     glLoadIdentity();               // and load the identity matrix.
     // Next, we multiply the projection identity matrix by a view frustum matrix. The
     // width extends from -1 to +1, while the height is variable (set by the aspect ratio).
-    glFrustum(-1.0f, 1.0f, -aspectRatio, aspectRatio, 5.0f, 60.0f);
+    glFrustum(-1.0f, 1.0f, -aspectRatio, aspectRatio, 5.0f, 100.0f);
     glMatrixMode(GL_MODELVIEW);     // Finally, we switch back to the modelview matrix.
 }
 
@@ -201,8 +202,8 @@ void Resize(GLint width, GLint height)
 ///
 void RenderScene()
 {
-    // If there is an FPS limit get the current number of ticks to compute the delay below.
-    if (fpsRateCap > 0) fpsCurrTicks = SDL_GetTicks();
+    // We get the time we start drawing the frame at if we need to compute the delay below.
+    //fpsCurrTicks = SDL_GetTicks();
     // Next, we clear the OpenGL scene with the specified clear colour.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Now, we can begin to draw everything on the screen in the proper order.
@@ -219,10 +220,14 @@ void RenderScene()
     }
     if (fpsRateCap > 0)             // Then, if there is an FPS limit...
     {
-        static Uint32 fpsLastDraw = 0;  // The time the scene was last rendered.
-        fpsLastDraw = SDL_GetTicks();
+        static Uint32 fpsLastDraw = SDL_GetTicks(); // The time the scene was last rendered.
         // Delay the rendering engine by the appropriate amount to limit the framerate.
-        SDL_Delay(fpsRateCap - (fpsLastDraw - fpsCurrTicks));
+        Uint32 currTicks = SDL_GetTicks();
+        if (currTicks - fpsLastDraw < fpsRateCap)
+        {
+            SDL_Delay(fpsRateCap - (currTicks - fpsLastDraw));
+        }
+        fpsLastDraw = SDL_GetTicks();               // And lastly, update the last draw time.
     }
     SDL_GL_SwapBuffers();           // Finally, swap the buffers to display the new image.
 }
