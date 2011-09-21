@@ -155,7 +155,9 @@ void EventLoop()
                     break;
 
                 case SDL_VIDEORESIZE:       // If the user resized the window...
-                    // We set the new video mode of the SDL screen with the same bpp/flags.
+                    // First, we free the old video screen.
+                    SDL_FreeSurface(screen);
+                    // Next, we set the video mode of the new SDL screen.
                     screen = SDL_SetVideoMode(event.resize.w, event.resize.h,
                                               scrBpp, scrFlags);
                     // Then, we call the Resize function to setup the OpenGL viewport.
