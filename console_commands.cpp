@@ -216,7 +216,7 @@ bool StringToConst(std::string const& toConvert, int &result)
 }
 
 
-namespace TCC_ERROR
+namespace TC_Console_Error
 {
     const std::string INVALID_NUM_ARGS      = "Error - invalid number of arguments passed.",
                       INVALID_NUM_ARGS_LESS = "Error - not enough arguments passed.",
@@ -227,89 +227,17 @@ namespace TCC_ERROR
     {
         if (actual < expected)
         {
-            WriteOutput(TCC_ERROR::INVALID_NUM_ARGS_LESS);
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_LESS);
         }
         else if (actual > expected)
         {
-            WriteOutput(TCC_ERROR::INVALID_NUM_ARGS_MORE);
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
         }
     }
 }
 
-namespace TCC_COMMANDS
+namespace TC_Console_Commands
 {
-
-void showfps(std::vector<std::string> const& argv)
-{
-    showFps = !showFps;
-}
-
-void runanim(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 0)
-    {
-        runAnim = !runAnim;
-    }
-    else if (argv.size() == 1)
-    {
-        if (argv[0].length() == 1)
-        {
-            if (argv[0][0] == '0')
-            {
-                runAnim = false;
-            }
-            else if (argv[0][0] == '1')
-            {
-                runAnim = true;
-            }
-            else
-            {
-                WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-            }
-        }
-        else
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-    }
-    else
-    {
-        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS_MORE);
-    }
-}
-
-void echo(std::vector<std::string> const& argv)
-{
-    for (size_t i = 0; i < argv.size(); i++)
-    {
-        std::string output;
-        output = "Arg ";
-        output += ('0' + i);
-        WriteOutput(output + " = " + argv[i]);
-    }
-}
-
-void help(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 0)
-    {
-        WriteOutput("Welcome to " TCP_NAME " version " TCP_VERSION "!");
-        WriteOutput("To get help for a command, type \"help [command]\".");
-        WriteOutput("To see a list of commands, type \"list commands\" (type \"help list\" to see what else you can list).");
-    }
-    else if (argv.size() == 1)
-    {
-        ConsoleCommand *command = GetCommand(argv[0]);
-        if (command != NULL)
-        {
-            WriteOutput(command->help);
-        }
-        else
-        {
-            WriteOutput("Help entry not found.");
-        }
-    }
-}
 
 void clear(std::vector<std::string> const& argv)
 {
@@ -325,7 +253,7 @@ void clear(std::vector<std::string> const& argv)
         }
         else
         {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
     }
     else
@@ -333,102 +261,6 @@ void clear(std::vector<std::string> const& argv)
         WriteOutput("Clears the screen or history.  Usage:");
         WriteOutput("   clear [option]");
         WriteOutput("Where [option] is either history or screen.");
-    }
-}
-
-
-void list(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 1)
-    {
-        if (argv[0] == "commands")
-        {
-            std::list<ConsoleCommand*>::iterator cmdIt;
-            for (cmdIt = cmdList.begin(); cmdIt != cmdList.end(); cmdIt++)
-            {
-                WriteOutput((*cmdIt)->name);
-            }
-        }
-        else if (argv[0] == "aliases")
-        {
-            WriteOutput("The following is a list of aliases and their mapped commands (alias : command):");
-            std::list<CommandAlias*>::iterator aliasIt;
-            for (aliasIt = aliasList.begin(); aliasIt != aliasList.end(); aliasIt++)
-            {
-                WriteOutput((*aliasIt)->alias + " : " + (*aliasIt)->name);
-            }
-        }
-        else if (argv[0] == "animations")
-        {
-            WriteOutput("Sorry, still working on this... For now, just try \"sendplane\".");
-        }
-        else
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-    }
-    else
-    {
-        TCC_ERROR::WrongArgCount(argv.size(), 1);
-    }
-}
-
-void fpsmax(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 1)
-    {
-        std::stringstream fpsStr(argv[0]);
-        Uint16 newFpsLimit;
-        if (!(fpsStr >> newFpsLimit) || newFpsLimit < 0)
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-        else
-        {
-            SetFpsLimit(newFpsLimit);
-        }
-    }
-    else
-    {
-        TCC_ERROR::WrongArgCount(argv.size(), 1);
-    }
-}
-
-void cubesize(std::vector<std::string> const& argv)
-{
-    if (argv.size() == 1)
-    {
-        std::stringstream strSize(argv[0]);
-        Uint16 newSize;
-        if (!(strSize >> newSize) || newSize == 0 || newSize > 100)
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-        else
-        {
-            SetCubeSize((byte)newSize, (byte)newSize, (byte)newSize);
-        }
-    }
-    else if (argv.size() == 3)
-    {
-        std::stringstream strSizeX(argv[0]),
-                          strSizeY(argv[1]),
-                          strSizeZ(argv[2]);
-        Uint16 newSize[3];
-        if (    !(strSizeX >> newSize[0]) || newSize[0] == 0 || newSize[0] > 100
-             || !(strSizeY >> newSize[1]) || newSize[1] == 0 || newSize[1] > 100
-             || !(strSizeZ >> newSize[2]) || newSize[2] == 0 || newSize[2] > 100 )
-        {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
-        }
-        else
-        {
-            SetCubeSize((byte)newSize[0], (byte)newSize[1], (byte)newSize[2]);
-        }
-    }
-    else
-    {
-        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
     }
 }
 
@@ -450,7 +282,7 @@ void color(std::vector<std::string> const& argv)
         }
         else
         {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
     }
     // So, if we have the proper number of colours...
@@ -488,56 +320,140 @@ void color(std::vector<std::string> const& argv)
         }
         else
         {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
     }
     else
     {
-        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS);
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
     }
 }
 
-void tickrate(std::vector<std::string> const& argv)
+void cubesize(std::vector<std::string> const& argv)
 {
     if (argv.size() == 1)
     {
-        std::stringstream strTickRate(argv[0]);
-        Uint16 newTickRate;
-        if (!(strTickRate >> newTickRate) || newTickRate == 0)
+        std::stringstream strSize(argv[0]);
+        Uint16 newSize;
+        if (!(strSize >> newSize) || newSize == 0 || newSize > 100)
         {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
         else
         {
-            SetTickRate(newTickRate);
+            SetCubeSize((byte)newSize, (byte)newSize, (byte)newSize);
+        }
+    }
+    else if (argv.size() == 3)
+    {
+        std::stringstream strSizeX(argv[0]),
+                          strSizeY(argv[1]),
+                          strSizeZ(argv[2]);
+        Uint16 newSize[3];
+        if (    !(strSizeX >> newSize[0]) || newSize[0] == 0 || newSize[0] > 100
+             || !(strSizeY >> newSize[1]) || newSize[1] == 0 || newSize[1] > 100
+             || !(strSizeZ >> newSize[2]) || newSize[2] == 0 || newSize[2] > 100 )
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+        else
+        {
+            SetCubeSize((byte)newSize[0], (byte)newSize[1], (byte)newSize[2]);
         }
     }
     else
     {
-        TCC_ERROR::WrongArgCount(argv.size(), 1);
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
     }
 }
 
-void quality(std::vector<std::string> const& argv)
+void echo(std::vector<std::string> const& argv)
+{
+    for (size_t i = 0; i < argv.size(); i++)
+    {
+        std::string output;
+        output = "Arg ";
+        output += ('0' + i);
+        WriteOutput(output + " = " + argv[i]);
+    }
+}
+
+void fpsmax(std::vector<std::string> const& argv)
 {
     if (argv.size() == 1)
     {
-        std::stringstream strQual(argv[0]);
-        unsigned int newQuality;
-        if (!(strQual >> newQuality) || newQuality < 1 || newQuality > 5)
+        std::stringstream fpsStr(argv[0]);
+        Uint16 newFpsLimit;
+        if (!(fpsStr >> newFpsLimit) || newFpsLimit < 0)
         {
-            WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
         else
         {
-            sphSlices = newQuality * 3;
-            sphStacks = newQuality * 3;
-            InitDisplayLists();
+            SetFpsLimit(newFpsLimit);
         }
     }
     else
     {
-        TCC_ERROR::WrongArgCount(argv.size(), 1);
+        TC_Console_Error::WrongArgCount(argv.size(), 1);
+    }
+}
+
+void help(std::vector<std::string> const& argv)
+{
+    if (argv.size() == 0)
+    {
+        WriteOutput("Welcome to " TCP_NAME " version " TCP_VERSION "!");
+        WriteOutput("To get help for a command, type \"help [command]\".");
+        WriteOutput("To see a list of commands, type \"list commands\" (type \"help list\" to see what else you can list).");
+    }
+    else if (argv.size() == 1)
+    {
+        ConsoleCommand *command = GetCommand(argv[0]);
+        if (command != NULL)
+        {
+            WriteOutput(command->help);
+        }
+        else
+        {
+            WriteOutput("Help entry not found.");
+        }
+    }
+}
+
+void list(std::vector<std::string> const& argv)
+{
+    if (argv.size() == 1)
+    {
+        if (argv[0] == "commands")
+        {
+            std::list<ConsoleCommand*>::iterator cmdIt;
+            for (cmdIt = cmdList.begin(); cmdIt != cmdList.end(); cmdIt++)
+            {
+                WriteOutput((*cmdIt)->name);
+            }
+        }
+        else if (argv[0] == "aliases")
+        {
+            WriteOutput("The following is a list of aliases and their mapped commands (alias : command):");
+            std::list<CommandAlias*>::iterator aliasIt;
+            for (aliasIt = aliasList.begin(); aliasIt != aliasList.end(); aliasIt++)
+            {
+                WriteOutput((*aliasIt)->alias + " : " + (*aliasIt)->name);
+            }
+        }
+        else if (argv[0] == "animations")
+        {
+            WriteOutput("Sorry, still working on this... For now, just try \"sendplane\".");
+        }
+        else
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 1);
     }
 }
 
@@ -545,7 +461,7 @@ void loadanim(std::vector<std::string> const& argv)
 {
     if (argv.size() == 0)   // If there were no arguments passed, show an error and return.
     {
-        WriteOutput(TCC_ERROR::INVALID_NUM_ARGS_LESS);
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_LESS);
         return;
     }
     int *argVals = NULL;    // Array holding the values of each argument.
@@ -566,7 +482,7 @@ void loadanim(std::vector<std::string> const& argv)
                 int argVal;                             // The argument value itself.    
                 if (!(argStr >> argVal))                // So if we could not convert it...
                 {
-                    WriteOutput(TCC_ERROR::INVALID_ARG_VALUE);  // Output an error, delete
+                    WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);  // Output an error, delete
                     delete argVals;                             // the argument vector,
                     return;                                     // and return.
                 }
@@ -584,6 +500,89 @@ void loadanim(std::vector<std::string> const& argv)
     delete argVals;
 }
 
+void quality(std::vector<std::string> const& argv)
+{
+    if (argv.size() == 1)
+    {
+        std::stringstream strQual(argv[0]);
+        unsigned int newQuality;
+        if (!(strQual >> newQuality) || newQuality < 1 || newQuality > 5)
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+        else
+        {
+            sphSlices = newQuality * 3;
+            sphStacks = newQuality * 3;
+            InitDisplayLists();
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 1);
+    }
+}
+
+void runanim(std::vector<std::string> const& argv)
+{
+    if (argv.size() == 0)
+    {
+        runAnim = !runAnim;
+    }
+    else if (argv.size() == 1)
+    {
+        if (argv[0].length() == 1)
+        {
+            if (argv[0][0] == '0')
+            {
+                runAnim = false;
+            }
+            else if (argv[0][0] == '1')
+            {
+                runAnim = true;
+            }
+            else
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+        }
+        else
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+    }
+    else
+    {
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+    }
+}
+
+void showfps(std::vector<std::string> const& argv)
+{
+    showFps = !showFps;
+}
+
+void tickrate(std::vector<std::string> const& argv)
+{
+    if (argv.size() == 1)
+    {
+        std::stringstream strTickRate(argv[0]);
+        Uint16 newTickRate;
+        if (!(strTickRate >> newTickRate) || newTickRate == 0)
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+        else
+        {
+            SetTickRate(newTickRate);
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 1);
+    }
+}
+
 
 ///
 /// \brief Register Commands
@@ -596,8 +595,6 @@ void loadanim(std::vector<std::string> const& argv)
 ///
 void RegisterCommands()
 {
-//    cmdList.push_back(new ConsoleCommand("name", func, "desc", "helpentry"));
-    // Finally, we sort the command list.
     cmdList.push_back(new ConsoleCommand("echo", echo,
         "Ouptuts each passed command line argument as it is parsed."));
 
@@ -605,7 +602,9 @@ void RegisterCommands()
         "Toggles the FPS counter on or off.  To set explicitly, 0 or 1 as the only argument."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
-        "Toggles the animation from updating.  To set explicitly, 0 or 1 as the only argument."));
+        "Toggles the animation from updating.  To explicitly set the animation's running state, use "
+        "0 or 1 as the only argument (e.g. runanim 0 will stop the animation from updating)."));
+    aliasList.push_back(new CommandAlias("runanim", "p"));
 
     cmdList.push_back(new ConsoleCommand("help", help,
         "The help command prints the help entries for a single command (passed as the argument)."));
@@ -635,13 +634,7 @@ void RegisterCommands()
         "  color -off 0 255 0 127   Sets the color of the off LEDs to green at 50% transparency.\n"
         "If the alpha parameter is unspecified, it is not modified in the new color."));
 
-/*    cmdList.push_back(new ConsoleCommand("sendplane", sendplane,
-        ""));
-
-    cmdList.push_back(new ConsoleCommand("rain", rain,
-        "One argument, the number of drops."));
-*/
-    aliasList.push_back(new CommandAlias("runanim", "p"));
+    // Finally, we sort the command and alias lists alphabetically.
     cmdList.sort(cmpConsoleCmd);
     aliasList.sort(cmpCmdAlias);
 }

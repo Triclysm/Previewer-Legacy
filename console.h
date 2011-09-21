@@ -65,7 +65,7 @@ extern std::list<std::string>::iterator outputIt;   // The output list iterator.
  *                                 FUNCTION PROTOTYPES                                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace TCC_COMMANDS
+namespace TC_Console_Commands
 {
     void RegisterCommands();    // Defined in console_commands.cpp.
 }
