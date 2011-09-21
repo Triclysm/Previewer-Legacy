@@ -84,7 +84,7 @@ void InitConsole(size_t maxInputLen, size_t maxHistLines, size_t maxOutLines)
     maxInputLength  = maxInputLen;
     maxHistoryLines = maxHistLines;
     maxOutputLines  = maxOutLines;
-    TCC_COMMANDS::RegisterCommands();
+    TC_Console_Commands::RegisterCommands();
     consoleEnabled = false;
 }
 
