@@ -244,11 +244,71 @@ namespace TC_Lua_Functions
                 return 0;
             }
         }
+        
+        int SetColumnValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                currAnim->SetColumnColor(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    (byte)lua_tointeger(L, 4));
+            }
+            return 0;
+        }
     
+        int CompareColumnValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 4)
+            {
+                lua_pushboolean(L, currAnim->CompareColumnColor(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3),
+                    (byte)lua_tointeger(L, 4) ));
+                return 1;
+            }
+            return 0;
+        }
+        
+        int SetPlaneValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                currAnim->SetPlaneColor(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3));
+            }
+            return 0;
+        }
+    
+        int ComparePlaneValue(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (currAnim != NULL && argc == 3)
+            {
+                lua_pushboolean(L, currAnim->ComparePlaneColor(
+                    (byte)lua_tointeger(L, 1),
+                    (byte)lua_tointeger(L, 2),
+                    (byte)lua_tointeger(L, 3) ));
+                return 1;
+            }
+            return 0;
+        }
+
         void RegisterCommands(lua_State *L)
         {
-            lua_register(L, "SetVoxelValue", SetVoxelValue);
-            lua_register(L, "GetVoxelValue", GetVoxelValue);
+            lua_register(L, "SetVoxelValue",      SetVoxelValue);
+            lua_register(L, "GetVoxelValue",      GetVoxelValue);
+            lua_register(L, "SetColumnValue",     GetVoxelValue);
+            lua_register(L, "CompareColumnValue", CompareColumnValue);
+            lua_register(L, "SetPlaneValue",      SetPlaneValue);
+            lua_register(L, "ComparePlaneValue",  ComparePlaneValue);
         }
     }
     
@@ -335,6 +395,91 @@ namespace TC_Lua_Functions
             return 0;
         }
 
+        int SetColumnColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc != 4 && argc != 6) return 0;
+            if (currAnim != NULL)
+            {
+                if (argc == 4)
+                {
+                    currAnim->SetColumnColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (ulint)lua_tointeger(L, 4) );
+                }
+                else
+                {
+                    currAnim->SetColumnColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (byte)lua_tointeger(L, 4),
+                        (byte)lua_tointeger(L, 5),
+                        (byte)lua_tointeger(L, 6) );
+                }
+                return 1;
+            }
+            return 0;
+        }
+
+        int CompareColumnColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc != 4 && argc != 6) return 0;
+            if (currAnim != NULL)
+            {
+                if (argc == 4)
+                {
+                    lua_pushboolean(L, currAnim->CompareColumnColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (ulint)lua_tointeger(L, 4)));
+                }
+                else
+                {
+                    lua_pushboolean(L, currAnim->CompareColumnColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (byte)lua_tointeger(L, 4),
+                        (byte)lua_tointeger(L, 5),
+                        (byte)lua_tointeger(L, 6)));
+                }
+                return 1;
+            }
+            return 0;
+        }
+
+        int SetPlaneColor(lua_State *L)
+        {
+            int argc = lua_gettop(L);
+            if (argc != 3 && argc != 5) return 0;
+            if (currAnim != NULL)
+            {
+                if (argc == 3)
+                {
+                    currAnim->SetPlaneColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (ulint)lua_tointeger(L, 3) );
+                }
+                else
+                {
+                    currAnim->SetPlaneColor(
+                        (byte)lua_tointeger(L, 1),
+                        (byte)lua_tointeger(L, 2),
+                        (byte)lua_tointeger(L, 3),
+                        (byte)lua_tointeger(L, 4),
+                        (byte)lua_tointeger(L, 5) );
+                }
+                return 1;
+            }
+            return 0;
+        }
+
         int ComparePlaneColor(lua_State *L)
         {
             int argc = lua_gettop(L);
@@ -364,9 +509,12 @@ namespace TC_Lua_Functions
         
         void RegisterCommands(lua_State *L)
         {
-            lua_register(L, "SetVoxelColor", SetVoxelColor);
-            lua_register(L, "GetVoxelColor", GetVoxelColor);
-            lua_register(L, "ComparePlaneColor", ComparePlaneColor);
+            lua_register(L, "SetVoxelColor",      SetVoxelColor);
+            lua_register(L, "GetVoxelColor",      GetVoxelColor);
+            lua_register(L, "SetColumnColor",     SetColumnColor);
+            lua_register(L, "CompareColumnColor", CompareColumnColor);
+            lua_register(L, "SetPlaneColor",      SetPlaneColor);
+            lua_register(L, "ComparePlaneColor",  ComparePlaneColor);
         }
     }
 }

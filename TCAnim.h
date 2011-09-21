@@ -71,16 +71,16 @@ public:
     void SetColumnColor(byte axis, byte dim1, byte dim2, byte grey);
     void SetColumnColor(byte axis, byte dim1, byte dim2, byte r, byte g, byte b);
     void SetColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue);
-    bool CompareColumnColor(byte axis, byte dim1, byte dim2, byte grey = 0);
-    bool CompareColumnColor(byte axis, byte dim1, byte dim2, byte r = 0, byte g = 0, byte b = 0);
-    bool CompareColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue = 0x000000);
+    bool CompareColumnColor(byte axis, byte dim1, byte dim2, byte grey);
+    bool CompareColumnColor(byte axis, byte dim1, byte dim2, byte r, byte g, byte b);
+    bool CompareColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue);
     
     void SetPlaneColor(byte plane, byte offset, byte grey);
     void SetPlaneColor(byte plane, byte offset, byte r, byte g, byte b);
     void SetPlaneColor(byte plane, byte offset, ulint rgbColorValue);
-    bool ComparePlaneColor(byte plane, byte offset, byte grey = 0);
-    bool ComparePlaneColor(byte plane, byte offset, byte r = 0, byte g = 0, byte b = 0);
-    bool ComparePlaneColor(byte plane, byte offset, ulint rgbColorValue = 0x000000);
+    bool ComparePlaneColor(byte plane, byte offset, byte grey);
+    bool ComparePlaneColor(byte plane, byte offset, byte r, byte g, byte b);
+    bool ComparePlaneColor(byte plane, byte offset, ulint rgbColorValue);
     
     void Shift(byte plane, sbyte offset);
 
