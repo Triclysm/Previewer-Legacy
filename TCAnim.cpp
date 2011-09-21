@@ -413,6 +413,109 @@ void TCAnim::SetColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue
 
 
 ///
+/// \brief Compare Column Color (Greyscale)
+///
+/// Sets the specified column's color to the passed greyscale value.
+///
+/// \param axis The axis to compare the column (TC_X_AXIS, TC_Y_AXIS, or TC_Z_AXIS).
+/// \param dim1 The first remaining dimension
+///                 (e.g. the first character from 'XYZ' if you remove the axis).
+/// \param dim2 The second remaining dimension
+///                 (e.g. the second character from 'XYZ' if you remove the axis).
+/// \param grey The greyscale value (0-255) to set the column to.
+///
+/// \remarks If numColors is 0, the column's state is compared to 0x01 for a non-zero grey value.
+///          If numColors is 3, each R/G/B color value is set to the grey value.
+///
+bool TCAnim::CompareColumnColor(byte axis, byte dim1, byte dim2, byte grey)
+{
+    bool returnVal = false;
+    switch (numColors)
+    {
+        case 0:
+            cubeState[0]->GetColumnState(axis, dim1, dim2, grey == 0x00 ? 0x00 : 0x01);
+            break;
+        case 1:
+            cubeState[0]->GetColumnState(axis, dim1, dim2, grey);
+            break;
+        case 3:
+            returnVal = cubeState[0]->GetColumnState(axis, dim1, dim2, grey) &&
+                        cubeState[1]->GetColumnState(axis, dim1, dim2, grey) &&
+                        cubeState[2]->GetColumnState(axis, dim1, dim2, grey);
+            break;
+        default:
+            break;
+    }
+    return returnVal;
+}
+
+
+///
+/// \brief Compare Column Color (RGB Values)
+///
+/// Sets the specified column's color to the passed red, green, and blue values.
+///
+/// \param axis The axis to compare the column (TC_X_AXIS, TC_Y_AXIS, or TC_Z_AXIS).
+/// \param dim1 The first remaining dimension
+///                 (e.g. the first character from 'XYZ' if you remove the axis).
+/// \param dim2 The second remaining dimension
+///                 (e.g. the second character from 'XYZ' if you remove the axis).
+/// \param r    The value (0-255) of the red color.
+/// \param g    The value (0-255) of the green color.
+/// \param b    The value (0-255) of the blue color.
+///
+/// \remarks If numColors is 0, the column state is compared to 0x01 if r, g, and b are non-zero.
+///          If numColors is 1, the column state is compared to the average of r, g, and b.
+///
+bool TCAnim::CompareColumnColor(byte axis, byte dim1, byte dim2, byte r, byte g, byte b)
+{
+    bool toReturn = false;
+    switch (numColors)
+    {
+        case 0:
+            toReturn = cubeState[0]->GetColumnState(axis, dim1, dim2, 
+                (r == 0x00 && g == 0x00 && b == 0x00) == 0x00 ? 0x00 : 0x01);
+            break;
+        case 1:
+            toReturn = cubeState[0]->GetColumnState(axis, dim1, dim2, (r + g + b) / 3);
+            break;
+        case 3:
+            toReturn = cubeState[TC_COLOR_R]->GetColumnState(axis, dim1, dim2, r) &&
+                       cubeState[TC_COLOR_G]->GetColumnState(axis, dim1, dim2, g) &&
+                       cubeState[TC_COLOR_B]->GetColumnState(axis, dim1, dim2, b);
+            break;
+        default:
+            break;
+    }
+    return toReturn;
+}
+
+
+///
+/// \brief Compare Column Color (RGB Hexadecimal)
+///
+/// Sets the specified column's color to the passed hexadecimal value (e.g. 0xFF0000). This
+/// function is mostly a wrapper, which splits the rgbColorValue argument into the proper
+/// red, green, and blue values, and passes them to another CompareColumnColor overload.
+///
+/// \param axis          The axis to compare the column (TC_X_AXIS, TC_Y_AXIS, or TC_Z_AXIS).
+/// \param dim1          The first remaining dimension
+///                          (e.g. the first character from 'XYZ' if you remove the axis).
+/// \param dim2          The second remaining dimension
+///                          (e.g. the second character from 'XYZ' if you remove the axis).
+/// \param rgbColorValue The hexadecimal RGB color value (as a 32-bit integer).  Only the
+///                      lower 24-bits are considered (the remaining bits are masked off).
+///
+bool TCAnim::CompareColumnColor(byte axis, byte dim1, byte dim2, ulint rgbColorValue)
+{
+    return CompareColumnColor(axis, dim1, dim2,
+        (byte)((rgbColorValue & 0xFF0000) >> 16), 
+        (byte)((rgbColorValue & 0x00FF00) >>  8), 
+        (byte)((rgbColorValue & 0x0000FF)) );
+}
+
+
+///
 /// \brief Set Plane Color (Greyscale)
 ///
 /// Sets the specified plane's color to the passed greyscale value.
