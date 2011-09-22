@@ -241,13 +241,17 @@ namespace TC_Console_Commands
 
 void clear(std::vector<std::string> const& argv)
 {
-    if (argv.size() == 1)
+    if (argv.size() == 0)
     {
-        if (argv[1] == "output")
+        ClearOutput();
+    }
+    else if (argv.size() == 1)
+    {
+        if (argv[1] == "-o" || argv[1] == "-output")
         {
             ClearOutput();
         }
-        else if (argv[1] == "history")
+        else if (argv[1] == "-h" || argv[1] == "-history")
         {
             ClearHistory();
         }
@@ -258,9 +262,7 @@ void clear(std::vector<std::string> const& argv)
     }
     else
     {
-        WriteOutput("Clears the screen or history.  Usage:");
-        WriteOutput("   clear [option]");
-        WriteOutput("Where [option] is either history or screen.");
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
     }
 }
 
@@ -331,39 +333,55 @@ void color(std::vector<std::string> const& argv)
 
 void cubesize(std::vector<std::string> const& argv)
 {
-    if (argv.size() == 1)
+    switch (argv.size())
     {
-        std::stringstream strSize(argv[0]);
-        Uint16 newSize;
-        if (!(strSize >> newSize) || newSize == 0 || newSize > 100)
+        case 0:
         {
-            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            byte *currCubeSize = GetCubeSize();
+            std::stringstream ssOutput;
+            ssOutput << "The current cube size is: ";
+            ssOutput << (int)currCubeSize[0] << "x";
+            ssOutput << (int)currCubeSize[1] << "x";
+            ssOutput << (int)currCubeSize[2] << " voxels.";
+            WriteOutput(ssOutput.str());
+            delete[] currCubeSize;
+            break;
         }
-        else
+        case 1:
         {
-            SetCubeSize((byte)newSize, (byte)newSize, (byte)newSize);
+            std::stringstream strSize(argv[0]);
+            Uint16 newSize;
+            if (!(strSize >> newSize) || newSize == 0 || newSize > 100)
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            else
+            {
+                SetCubeSize((byte)newSize, (byte)newSize, (byte)newSize);
+            }
+            break;
         }
-    }
-    else if (argv.size() == 3)
-    {
-        std::stringstream strSizeX(argv[0]),
-                          strSizeY(argv[1]),
-                          strSizeZ(argv[2]);
-        Uint16 newSize[3];
-        if (    !(strSizeX >> newSize[0]) || newSize[0] == 0 || newSize[0] > 100
-             || !(strSizeY >> newSize[1]) || newSize[1] == 0 || newSize[1] > 100
-             || !(strSizeZ >> newSize[2]) || newSize[2] == 0 || newSize[2] > 100 )
+        case 3:
         {
-            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            std::stringstream strSizeX(argv[0]),
+                              strSizeY(argv[1]),
+                              strSizeZ(argv[2]);
+            Uint16 newSize[3];
+            if (    !(strSizeX >> newSize[0]) || newSize[0] == 0 || newSize[0] > 100
+                 || !(strSizeY >> newSize[1]) || newSize[1] == 0 || newSize[1] > 100
+                 || !(strSizeZ >> newSize[2]) || newSize[2] == 0 || newSize[2] > 100 )
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            else
+            {
+                SetCubeSize((byte)newSize[0], (byte)newSize[1], (byte)newSize[2]);
+            }
+            break;
         }
-        else
-        {
-            SetCubeSize((byte)newSize[0], (byte)newSize[1], (byte)newSize[2]);
-        }
-    }
-    else
-    {
-        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
+            break;
     }
 }
 
@@ -380,44 +398,70 @@ void echo(std::vector<std::string> const& argv)
 
 void fpsmax(std::vector<std::string> const& argv)
 {
-    if (argv.size() == 1)
+    switch (argv.size())
     {
-        std::stringstream fpsStr(argv[0]);
-        Uint16 newFpsLimit;
-        if (!(fpsStr >> newFpsLimit) || newFpsLimit < 0)
+        case 0:
         {
-            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            std::string outputStr = "Current FPS limit: ";
+            if (fpsMax == 0)
+            {
+                outputStr += "unlimited.";
+            }
+            else
+            {
+                std::stringstream ssFpsMax;
+                ssFpsMax << fpsMax;
+                outputStr += ssFpsMax.str();
+            }
+            WriteOutput(outputStr);
+            break;
         }
-        else
+        case 1:
         {
-            SetFpsLimit(newFpsLimit);
+            std::stringstream fpsStr(argv[0]);
+            Uint16 newFpsLimit;
+            if (!(fpsStr >> newFpsLimit) || newFpsLimit < 0)
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            else
+            {
+                SetFpsLimit(newFpsLimit);
+            }
+            break;
         }
-    }
-    else
-    {
-        TC_Console_Error::WrongArgCount(argv.size(), 1);
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
     }
 }
 
 void help(std::vector<std::string> const& argv)
 {
-    if (argv.size() == 0)
+    if (argv.size() == 0)       // If the user wants to show the quick help...
     {
         WriteOutput("Welcome to " TCP_NAME " version " TCP_VERSION "!");
         WriteOutput("To get help for a command, type \"help [command]\".");
-        WriteOutput("To see a list of commands, type \"list commands\" (type \"help list\" to see what else you can list).");
+        WriteOutput("To see a list of commands, type \"list -c\" (or type \"help list\" for more information about the list command).");
     }
-    else if (argv.size() == 1)
+    else if (argv.size() == 1)  // Else, if the user wants to get help for a command...
     {
-        ConsoleCommand *command = GetCommand(argv[0]);
-        if (command != NULL)
+        ConsoleCommand *command = GetCommand(argv[0]);  // Parse the argument as a command.
+        if (command != NULL)                            // If a command was found...
         {
-            WriteOutput(command->help);
+            WriteOutput(command->help);                     // Output it's help message.
         }
-        else
+        else                                            // Else, if it couldn't be found...
         {
-            WriteOutput("Help entry not found.");
+            std::string output = "Error - the command \"";
+            output += argv[0];
+            output += "\" could not be found.";
+            WriteOutput(output);
         }
+    }
+    else                        // Else, if the user passed an invaid number of arguments...
+    {
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS);
     }
 }
 
@@ -425,26 +469,23 @@ void list(std::vector<std::string> const& argv)
 {
     if (argv.size() == 1)
     {
-        if (argv[0] == "commands")
+        if (argv[0] == "-c" || argv[0] == "-commands")
         {
+            WriteOutput("The following is a list of all available console commands:");
             std::list<ConsoleCommand*>::iterator cmdIt;
             for (cmdIt = cmdList.begin(); cmdIt != cmdList.end(); cmdIt++)
             {
                 WriteOutput((*cmdIt)->name);
             }
         }
-        else if (argv[0] == "aliases")
+        else if (argv[0] == "-a" || argv[0] == "-aliases")
         {
-            WriteOutput("The following is a list of aliases and their mapped commands (alias : command):");
+            WriteOutput("The following is a list of all aliases and their mapped commands (alias : command):");
             std::list<CommandAlias*>::iterator aliasIt;
             for (aliasIt = aliasList.begin(); aliasIt != aliasList.end(); aliasIt++)
             {
                 WriteOutput((*aliasIt)->alias + " : " + (*aliasIt)->name);
             }
-        }
-        else if (argv[0] == "animations")
-        {
-            WriteOutput("Sorry, still working on this... For now, just try \"sendplane\".");
         }
         else
         {
@@ -525,41 +566,50 @@ void quality(std::vector<std::string> const& argv)
 
 void runanim(std::vector<std::string> const& argv)
 {
-    if (argv.size() == 0)
+    switch (argv.size())
     {
-        runAnim = !runAnim;
-    }
-    else if (argv.size() == 1)
-    {
-        if (argv[0].length() == 1)
-        {
-            if (argv[0][0] == '0')
+        case 0:
+            runAnim = !runAnim;
+            break;
+        case 1:
+            bool tmpResult;
+            if (StringToBool(argv[0], tmpResult))
             {
-                runAnim = false;
-            }
-            else if (argv[0][0] == '1')
-            {
-                runAnim = true;
+                runAnim = tmpResult;
             }
             else
             {
                 WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
             }
-        }
-        else
-        {
-            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
-        }
-    }
-    else
-    {
-        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
     }
 }
 
 void showfps(std::vector<std::string> const& argv)
 {
-    showFps = !showFps;
+    switch (argv.size())
+    {
+        case 0:
+            showFps = !showFps;
+            break;
+        case 1:
+            bool tmpResult;
+            if (StringToBool(argv[0], tmpResult))
+            {
+                showFps = tmpResult;
+            }
+            else
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            break;
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+    }
 }
 
 void tickrate(std::vector<std::string> const& argv)
@@ -568,7 +618,7 @@ void tickrate(std::vector<std::string> const& argv)
     {
         std::stringstream strTickRate(argv[0]);
         Uint16 newTickRate;
-        if (!(strTickRate >> newTickRate) || newTickRate == 0)
+        if (!(strTickRate >> newTickRate) || newTickRate == 0 || newTickRate > 1000)
         {
             WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
         }
@@ -595,46 +645,91 @@ void tickrate(std::vector<std::string> const& argv)
 ///
 void RegisterCommands()
 {
-    cmdList.push_back(new ConsoleCommand("echo", echo,
-        "Ouptuts each passed command line argument as it is parsed."));
 
-    cmdList.push_back(new ConsoleCommand("showfps", showfps,
-        "Toggles the FPS counter on or off.  To set explicitly, 0 or 1 as the only argument."));
-
-    cmdList.push_back(new ConsoleCommand("runanim", runanim,
-        "Toggles the animation from updating.  To explicitly set the animation's running state, use "
-        "0 or 1 as the only argument (e.g. runanim 0 will stop the animation from updating)."));
-    aliasList.push_back(new CommandAlias("runanim", "p"));
-
-    cmdList.push_back(new ConsoleCommand("help", help,
-        "The help command prints the help entries for a single command (passed as the argument)."));
-
-    cmdList.push_back(new ConsoleCommand("list", list, 
-        "Used to pass one of the following (use as the only argument): commands, aliases, animations."));
-
-    cmdList.push_back(new ConsoleCommand("fpsmax", fpsmax, "Used to set the maximum framerate."));
-
-    cmdList.push_back(new ConsoleCommand("cubesize", cubesize,
-        "Sets the size of the cube.  You can use a single value (to make a cube), "
-        "or three to make a rectangular prism (passed in the order x, y, z)."));
-
-    cmdList.push_back(new ConsoleCommand("tickrate", tickrate,
-        "Sets the current tick rate (ticks per second).  The default value is 30."));
-
-    cmdList.push_back(new ConsoleCommand("quality", quality,
-        "Changes the drawing quality of the cube.  Valid values are 1 to 5."));
-
-    cmdList.push_back(new ConsoleCommand("loadanim", loadanim,
-        "Help entry not done."));
+    cmdList.push_back(new ConsoleCommand("clear", clear,
+        "Clears the console output (default) or the console history. Usage:\n \n"
+        "    clear [arg]     Where [arg] is one of the following:\n"
+        "    -o, -output     Clears the console output.\n"
+        "    -h, -history    Clears the console history.\n \n"
+        "If [arg] is omitted, the command will default to -output."));
 
     cmdList.push_back(new ConsoleCommand("color", color,
-        "Sets the color of the on or off LEDs.  Values should be passed in RGB or RGBA format, from 0 to 255. Examples:\n"
-        "  color 255 0 0            Sets the color of the on LEDs to red.\n"
-        "  color -on 0 0 255        Sets the color of the on LEDs to blue.\n"
-        "  color -off 0 255 0 127   Sets the color of the off LEDs to green at 50% transparency.\n"
-        "If the alpha parameter is unspecified, it is not modified in the new color."));
+        "Used to change the color of the on or off LEDs. Has no effect on RGB animations. "
+        "Usage:\n \n"
+        "    color [state] red green blue [alpha]\n \n"
+        "Where [state] can be -on or -off (if omitted, defaults to -on), and red, green, "
+        "blue, and the optional alpha components are integer values from 0 to 255. If the "
+        "alpha component is omitted, its value is unmodified.  Examples:\n \n"
+        "    color 255 0 0             Sets the color of the on LEDs to red.\n"
+        "    color -on 0 0 255         Sets the color of the on LEDs to blue.\n"
+        "    color -off 0 255 0 127    Sets the color of the off LEDs to green at 50% "
+        "transparency."));
 
-    // Finally, we sort the command and alias lists alphabetically.
+    cmdList.push_back(new ConsoleCommand("cubesize", cubesize,
+        "Resets the dimensions of the cube. You can pass a single value to make a cube, "
+        "or pass three (in the order x, y, z) to make a rectangular prism. Usage:\n \n"
+        "    cubesize 8        Sets the size to an 8*8*8 cube.\n"
+        "    cubesize 4 6 8    Sets the size to an 4*6*8 (x*y*z) rectangular prism.\n \n"
+        "Calling this function without any arguments displays the current cube size. "
+        "Note that this function will close the currently running animation."));
+
+    cmdList.push_back(new ConsoleCommand("echo", echo,
+        "Outputs each passed command line argument as it is parsed."));
+
+    cmdList.push_back(new ConsoleCommand("fpsmax", fpsmax,
+        "Sets the maximum framerate of the rendering engine. Usage:\n \n"
+        "    fpsmax 60    Sets the maximum framerate to 60 frames per second (FPS).\n"
+        "    fpsmax 0     Disables the engine framerate limiter (may cause high CPU usage).\n \n"
+        "Call this command without any arguments to display the current FPS limit."));
+
+    cmdList.push_back(new ConsoleCommand("help", help,
+        "Used to obtain help information about a particular command, or display a quick "
+        "help guide. Usage:\n \n"
+        "    help [cmd]    Where [cmd] is the name of a particular command (e.g. help "
+        "list).\n \nIf [cmd] is omitted, the quick help guide is shown."));
+
+    cmdList.push_back(new ConsoleCommand("list", list,
+        "Used to list the available console commands or command aliases.  Usage:\n \n"
+        "    list arg         Where arg is one of the following\n"
+        "    -c, -commands    Lists all available console commands.\n"
+        "    -a, -aliases     Lists all aliases mapped to other console commands."));
+
+    cmdList.push_back(new ConsoleCommand("loadanim", loadanim,
+        "Loads an animation from a file in the /animations directory.  Usage:\n \n"
+        "    loadanim filename [arg1, arg2, arg3, ...]\n \n"
+        "Where filename is the name of the animation file (including extension), and the "
+        "remaining arguments are any arguments required by the animation (extra arguments "
+        "are ignored, but passing too few may result in an error).  Examples:\n \n"
+        "    loadanim sendplane.lua    Loads the sendplane.lua animation.\n"
+        "    loadanim rain.lua 4       Loads the rain.lua animation with 4 rain drops."));
+
+    cmdList.push_back(new ConsoleCommand("quality", quality,
+        "Changes the polygon count of the individual LED spheres making up the cube. "
+        "Lowering the quality may result in higher performance at the cost of visual "
+        "appearance. Usage:\n \n"
+        "    quality q    Where q is an integer from 1 (lowest quality) to 5 (highest)."));
+
+    cmdList.push_back(new ConsoleCommand("runanim", runanim,
+        "Toggles or sets the animation from updating.  Usage:\n \n"
+        "    runanim [bool]    Where [bool] is an optional boolean parameter.\n \n"
+        "If [bool] evaluates to true, the animation will begin updating.  If [bool] "
+        "evaluates to false, the animation will stop.  If [bool] is omitted, the running "
+        "state of the animation is toggled."));
+
+    cmdList.push_back(new ConsoleCommand("showfps", showfps,
+        "Toggles or sets the FPS counter from being displayed.  Usage:\n \n"
+        "    showfps [bool]    Where [bool] is an optional boolean parameter.\n \n"
+        "If [bool] evaluates to true, the FPS counter is shown.  If [bool] evaluates to "
+        "false, the FPS counter will not be drawn.  If [bool] is omitted, the state of "
+        "the FPS counter is toggled."));
+
+    cmdList.push_back(new ConsoleCommand("tickrate", tickrate,
+        "Sets the current tickrate for running animations (or updates per second). Usage:\n \n"
+        "    tickrate [newrate]    Where [newrate] is an optional integer parameter.\n \n"
+        "If omitted, the current tickrate is displayed.  If set, [newrate] must be a valid "
+        "integer between 1 and 1000."));
+    
+    // Finally, we make sure the command and alias lists are sorted (alphabetically).
     cmdList.sort(cmpConsoleCmd);
     aliasList.sort(cmpCmdAlias);
 }
