@@ -346,7 +346,7 @@ void DrawCube()
                     {
                         // First, we copy and translate the current matrix.
                         glPushMatrix();
-                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        glTranslatef(ledCurrPos[1], ledCurrPos[2], ledCurrPos[0]);
                         // Next, we set the LED color to either colLedOn or colLedOff.
                         if (currAnim->cubeState[0]->GetVoxelState(x, y, z) != 0x00)
                         {
@@ -380,7 +380,7 @@ void DrawCube()
                     {
                         // First, we copy and translate the current matrix.
                         glPushMatrix();
-                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        glTranslatef(ledCurrPos[1], ledCurrPos[2], ledCurrPos[0]);
                         // Next we set the LED color based on colLedOn and the voxel state.
                         byte voxelState = currAnim->cubeState[0]->GetVoxelState(x, y, z);
                         glColor4f(colLedOn[0] * voxelState / 255.0f,
@@ -411,12 +411,12 @@ void DrawCube()
                     {
                         // First, we copy and translate the current matrix.
                         glPushMatrix();
-                        glTranslatef(ledCurrPos[0], ledCurrPos[2], ledCurrPos[1]);
+                        glTranslatef(ledCurrPos[1], ledCurrPos[2], ledCurrPos[0]);
                         // Next we set the LED color based on the animation's cube states.
                         glColor4f(currAnim->cubeState[0]->GetVoxelState(x, y, z) / 255.0f,
                                   currAnim->cubeState[1]->GetVoxelState(x, y, z) / 255.0f,
                                   currAnim->cubeState[2]->GetVoxelState(x, y, z) / 255.0f,
-                                  1.0f );    // We leave the alpha channel full.
+                                  1.0f);    // We leave the alpha channel full.
                         // Now, we can call the LED display list to draw the current LED.
                         glCallList(dlistLed);
                         // Finally, we pop the matrix, and increment the z-coordinate.
