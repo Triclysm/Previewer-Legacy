@@ -241,6 +241,27 @@ void SetCubeSize(byte sx, byte sy, byte sz)
 
 
 ///
+/// \brief Get Cube Size
+///
+/// Returns an array containing the current cube size.
+///
+/// \returns An array with three elements (the x, y, and z sizes of the cube in voxels).
+///
+/// \remarks  You should delete[] the pointer returned by this function when you're done
+///           with it.
+/// \see      cubeSize | SetCubeSize
+///
+byte *GetCubeSize()
+{
+    byte *toReturn = new byte[3];
+    toReturn[0] = cubeSize[0];
+    toReturn[1] = cubeSize[1];
+    toReturn[2] = cubeSize[2];
+    return toReturn;
+}
+
+
+///
 /// \brief Initialize Animation Thread
 ///
 /// Creates both the animation thread (which runs the \ref UpdateAnim function in a

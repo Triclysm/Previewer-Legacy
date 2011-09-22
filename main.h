@@ -75,6 +75,7 @@ bool InitSDL();                                 // Initializes all SDL subsystem
 void CleanupSDL();                              // Cleans up all SDL objects.
 void SetTickRate(Uint32 newRate);               // Sets the animation tick rate.
 void SetCubeSize(byte sx, byte sy, byte sz);    // Updates the current cube size.
+byte *GetCubeSize();                            // Returns an array of the cube size.
 void SetAnim(TCAnim *newAnim);                  // Sets the current animation.
 
 // Thread specific functions:
