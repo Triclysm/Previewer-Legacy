@@ -545,30 +545,45 @@ void loadanim(vectStr const& argv)
 
 void quality(vectStr const& argv)
 {
-    if (argv.size() == 1)
+    static unsigned int lastQuality = 4;    // Default quality is 4.
+    switch (argv.size())
     {
-        std::stringstream strQual(argv[0]);
-        unsigned int newQuality;
-        if (!(strQual >> newQuality) || newQuality < 1 || newQuality > 5)
+        case 0:
         {
-            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            std::stringstream ssOutput;
+            ssOutput << "The current quality value is " << lastQuality << ".";
+            WriteOutput(ssOutput.str());
+            break;
         }
-        else
+
+        case 1:
         {
-            sphSlices = newQuality * 3;
-            sphStacks = newQuality * 3;
-            InitDisplayLists();
+            std::stringstream strQual(argv[0]);
+            unsigned int newQuality;
+            if (!(strQual >> newQuality) || newQuality < 1 || newQuality > 6)
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            else
+            {
+                sphSlices = newQuality * 3;
+                sphStacks = newQuality * 3;
+                InitDisplayLists();
+                lastQuality = newQuality;
+            }
+            break;
         }
-    }
-    else
-    {
-        TC_Console_Error::WrongArgCount(argv.size(), 1);
+
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
     }
 }
 
 void quit(vectStr const& argv)
 {
-
+    runProgram = false;
+    runAnim    = false;
 }
 
 void runanim(vectStr const& argv)
@@ -714,10 +729,11 @@ void RegisterCommands()
         "Changes the polygon count of the individual LED spheres making up the cube. "
         "Lowering the quality may result in higher performance at the cost of visual "
         "appearance. Usage:\n \n"
-        "    quality q    Where q is an integer from 1 (lowest quality) to 5 (highest)."));
+        "    quality q    Where q is an integer from 1 (lowest quality) to 6 (highest)."
+        "\n \nThe default quality is 4."));
     
     cmdList.push_back(new ConsoleCommand("quit", quit,
-        "Quits the program.  Any passed arguments are ignored."));
+        "Quits/closes Triclysm immediately.  Any passed arguments are ignored."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
         "Toggles or sets the animation from updating.  Usage:\n \n"
