@@ -82,11 +82,22 @@ void EventLoop()
                     {
                         consoleEnabled = !consoleEnabled;
                     }
-                    // Else, if they pressed escape, then stop running the program.
+                    // Else, if they pressed escape...
                     else if (event.key.keysym.sym == SDLK_ESCAPE)
                     {
-                        runProgram = false;
-                        return;
+                        // We record the time they press the key, and only quit if they press
+                        // escape twice within 0.5 seconds.
+                        static Uint16 lastPress = 0;
+                        Uint16 currPress = SDL_GetTicks();
+                        if (currPress - lastPress < 500)
+                        {
+                            runProgram = false;
+                            return;
+                        }
+                        else
+                        {
+                            lastPress = currPress;
+                        }                        
                     }
                     // Else, if they pressed another key...
                     else
@@ -141,8 +152,10 @@ void EventLoop()
                         mouseLastY = event.motion.y;
                         // Lastly, we ensure that the rotation in the y-direction does not
                         // exceed 90 degrees (otherwise the rotations would be backwards).
-                        if (viewRotY >  90) viewRotY =  90;
-                        if (viewRotY < -90) viewRotY = -90;
+                        if (viewRotY >   90) viewRotY =   90;
+                        if (viewRotY <  -90) viewRotY =  -90;
+                        if (viewRotX >  180) viewRotX = -180;
+                        if (viewRotX < -180) viewRotX =  180;
                     }
                     // If the right mouse button is held down...
                     if (mouseLastZ > 0)
@@ -310,8 +323,18 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
         case SDLK_LEFT:
             viewRotX -= kRotRate;
             break;
-/*
 
+        case SDLK_0:
+            viewRotX = 0.0f;
+            viewRotY = 0.0f;
+            break;
+
+        case SDLK_1:
+            viewRotX = 30.0f;
+            viewRotY = 20.0f;
+            break;
+
+/*          brek
         case SDLK_a:
             //int args[1] = { TC_XY_PLANE };
             //SetAnim(new TCAnimLua(cubeSize, "tcal/sendplane.lua", 0, args));

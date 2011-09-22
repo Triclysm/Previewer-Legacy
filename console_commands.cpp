@@ -34,6 +34,8 @@
 #include "TCAnim.h"
 #include "TCAnimLua.h"
 
+typedef std::vector<std::string> vectStr;
+
 ///
 /// \brief String Remove Spaces
 ///
@@ -239,7 +241,7 @@ namespace TC_Console_Error
 namespace TC_Console_Commands
 {
 
-void clear(std::vector<std::string> const& argv)
+void clear(vectStr const& argv)
 {
     if (argv.size() == 0)
     {
@@ -266,7 +268,7 @@ void clear(std::vector<std::string> const& argv)
     }
 }
 
-void color(std::vector<std::string> const& argv)
+void color(vectStr const& argv)
 {
     int argOffset = 0;
     bool offLed   = false;
@@ -331,7 +333,7 @@ void color(std::vector<std::string> const& argv)
     }
 }
 
-void cubesize(std::vector<std::string> const& argv)
+void cubesize(vectStr const& argv)
 {
     switch (argv.size())
     {
@@ -385,7 +387,7 @@ void cubesize(std::vector<std::string> const& argv)
     }
 }
 
-void echo(std::vector<std::string> const& argv)
+void echo(vectStr const& argv)
 {
     for (size_t i = 0; i < argv.size(); i++)
     {
@@ -396,7 +398,7 @@ void echo(std::vector<std::string> const& argv)
     }
 }
 
-void fpsmax(std::vector<std::string> const& argv)
+void fpsmax(vectStr const& argv)
 {
     switch (argv.size())
     {
@@ -436,7 +438,7 @@ void fpsmax(std::vector<std::string> const& argv)
     }
 }
 
-void help(std::vector<std::string> const& argv)
+void help(vectStr const& argv)
 {
     if (argv.size() == 0)       // If the user wants to show the quick help...
     {
@@ -465,7 +467,7 @@ void help(std::vector<std::string> const& argv)
     }
 }
 
-void list(std::vector<std::string> const& argv)
+void list(vectStr const& argv)
 {
     if (argv.size() == 1)
     {
@@ -498,7 +500,7 @@ void list(std::vector<std::string> const& argv)
     }
 }
 
-void loadanim(std::vector<std::string> const& argv)
+void loadanim(vectStr const& argv)
 {
     if (argv.size() == 0)   // If there were no arguments passed, show an error and return.
     {
@@ -541,7 +543,7 @@ void loadanim(std::vector<std::string> const& argv)
     delete argVals;
 }
 
-void quality(std::vector<std::string> const& argv)
+void quality(vectStr const& argv)
 {
     if (argv.size() == 1)
     {
@@ -564,7 +566,12 @@ void quality(std::vector<std::string> const& argv)
     }
 }
 
-void runanim(std::vector<std::string> const& argv)
+void quit(vectStr const& argv)
+{
+
+}
+
+void runanim(vectStr const& argv)
 {
     switch (argv.size())
     {
@@ -588,7 +595,7 @@ void runanim(std::vector<std::string> const& argv)
     }
 }
 
-void showfps(std::vector<std::string> const& argv)
+void showfps(vectStr const& argv)
 {
     switch (argv.size())
     {
@@ -612,7 +619,7 @@ void showfps(std::vector<std::string> const& argv)
     }
 }
 
-void tickrate(std::vector<std::string> const& argv)
+void tickrate(vectStr const& argv)
 {
     if (argv.size() == 1)
     {
@@ -708,6 +715,9 @@ void RegisterCommands()
         "Lowering the quality may result in higher performance at the cost of visual "
         "appearance. Usage:\n \n"
         "    quality q    Where q is an integer from 1 (lowest quality) to 5 (highest)."));
+    
+    cmdList.push_back(new ConsoleCommand("quit", quit,
+        "Quits the program.  Any passed arguments are ignored."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
         "Toggles or sets the animation from updating.  Usage:\n \n"
