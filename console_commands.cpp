@@ -586,6 +586,43 @@ void quit(vectStr const& argv)
     runAnim    = false;
 }
 
+void resolution(vectStr const& argv)
+{
+    if (argv.size() == 2)
+    {
+        int    newHeight,
+               newWidth,
+               oldHeight = screen->h,
+               oldWidth  = screen->w;
+        Uint32 oldFlags  = screen->flags;
+        if ( !StringToInt(argv[0], newWidth)  ||
+             !StringToInt(argv[1], newHeight) ||
+             (newWidth <= 0) || (newHeight <= 0)        )
+        {
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+        else
+        {
+            // First, we free the old video screen.
+            SDL_FreeSurface(screen);
+            // Next, we set the video mode of the new screen.
+            screen = SDL_SetVideoMode(newWidth, newHeight, scrBpp, scrFlags);
+            if (screen != NULL)     // So, if we got a handle to a new screen...
+            {
+                Resize(screen->w, screen->h);   // Resize the OpenGL viewport.
+            }
+            else                    // Else, try to set the old video mode again.
+            {
+                screen = SDL_SetVideoMode(oldWidth, oldHeight, scrBpp, oldFlags);
+            }
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 2);
+    }
+}
+
 void runanim(vectStr const& argv)
 {
     switch (argv.size())
@@ -734,6 +771,12 @@ void RegisterCommands()
     
     cmdList.push_back(new ConsoleCommand("quit", quit,
         "Quits/closes Triclysm immediately.  Any passed arguments are ignored."));
+
+    cmdList.push_back(new ConsoleCommand("resolution", resolution,
+        "Sets the screen resolution of the program.  Usage:\n \n"
+        "    resolution width height    Where width and height are the new resolutions "
+        "(positive integer values) for the screen.\n \n"
+        "If the screen mode could not be set, the screen is set back to the old one."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
         "Toggles or sets the animation from updating.  Usage:\n \n"
