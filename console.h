@@ -82,7 +82,12 @@ void WriteHistory(std::string const& historyStr);
 void ClearOutput();
 void ClearHistory();
 
+
 void CallCommand(std::string const& cmd);
+void ParseInput();
+void ParseInput(std::string const& inputStr);
+ConsoleCommand *GetCommand(std::string const& cmdName);
+void SuggestCommand();
 
 void ScrollHistory(bool up);
 void ScrollOutput(bool up);
@@ -91,9 +96,7 @@ void MoveCursor(bool left);
 void InputBackspace();
 void InputAddChar(char c);
 
-void ParseInput();
-ConsoleCommand *GetCommand(std::string const& cmdName);
-void SuggestCommand();
+
 
 
 

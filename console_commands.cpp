@@ -29,6 +29,7 @@
 #include <sstream>
 #include <vector>
 #include "console.h"
+#include "events.h"
 #include "render.h"
 #include "main.h"
 #include "TCAnim.h"
@@ -218,6 +219,48 @@ bool StringToConst(std::string const& toConvert, int &result)
 }
 
 
+///
+/// \brief String To Key Symbol
+///
+/// Attempts to convert the passed string into a SDL Key Symbol (SDLKey).
+///
+/// \param toConvert The string representing the key symbol.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool StringToKeySym(std::string const& toConvert, SDLKey &result)
+{
+    std::string toConv(toConvert);
+    StringToLowercase(toConv);
+    if (toConv.length() == 1)   // If we have a single character...
+    {
+        if (toConv[0] >= 'a' && toConv[0] <= 'z')
+        {
+            result = (SDLKey)(SDLK_a + toConv[0] - 'a');
+            return true;
+        }
+        else if (toConv[0] >= '0' && toConv[0] <= '9')
+        {
+            result = (SDLKey)(SDLK_0 + toConv[0] - '0');
+            return true;
+        }
+    }
+    else                        // Else, if we have a word...
+    {
+        if (toConv == "space")
+        {
+            result = SDLK_SPACE;
+            return true;
+        }
+    }
+    // If we get here, no acceptable conversion was found, so we return false.
+    return false;
+}
+
+
 namespace TC_Console_Error
 {
     const std::string INVALID_NUM_ARGS      = "Error - invalid number of arguments passed.",
@@ -240,6 +283,144 @@ namespace TC_Console_Error
 
 namespace TC_Console_Commands
 {
+
+void bind(vectStr const& argv)
+{
+    switch (argv.size())
+    {
+        case 0:         // No arguments - list all key binds.
+            WriteOutput("List of key binds:");
+            WriteOutput("Not complete yet.");
+            break;
+        
+        case 1:         // One argument - output what they key is bound to.
+        {
+            SDLKey keySymbol = (SDLKey)0;
+            if (StringToKeySym(argv[0], keySymbol))
+            {
+                bool found = false;
+                // Next, search the list for the key.
+                std::list<KeyBind*>::iterator kbIt;
+                for (kbIt = kbList.begin(); kbIt != kbList.end(); kbIt++)
+                {
+                    if ((*kbIt)->ksym == keySymbol)
+                    {
+                        if (!found)
+                        {
+                            WriteOutput("The key '" + argv[0] + "' is bound to:");
+                            found = true;
+                        }
+                        std::stringstream ssResult("  ");
+                        bool addPlus = false;
+                        if ((*kbIt)->mCtrl)
+                        {
+                            ssResult << "Ctrl";
+                            addPlus = true;
+                        }
+                        if ((*kbIt)->mAlt)
+                        {
+                            if (addPlus)
+                            {
+                                ssResult << "+";
+                            }
+                            else
+                            {
+                                addPlus = true;
+                            }
+                            ssResult << "Alt";
+                        }
+                        if ((*kbIt)->mShift)
+                        {
+                            if (addPlus)
+                            {
+                                ssResult << "+";
+                            }
+                            else
+                            {
+                                addPlus = true;
+                            }
+                            ssResult << "Shift";
+                        }
+                        if (addPlus)
+                        {
+                            ssResult << "+";
+                        }
+                        ssResult << argv[0] << " = " << (*kbIt)->cmdStr;
+                        WriteOutput(ssResult.str());
+                    }
+                }
+            }
+            else
+            {
+                WriteOutput("Error - '" + argv[0] + "' is not a valid key.");
+            }
+            break;
+        }
+
+        case 2:         // Two to five arguments - set the key bind.
+        case 3:
+        case 4:
+        case 5:
+        {
+            std::string strCmd;
+            SDLKey keySymbol = (SDLKey)0;
+            bool modShift    = false,
+                 modCtrl     = false,
+                 modAlt      = false;
+            size_t i,
+                   numFlags  = argv.size() - 2;
+            // First, we parse any flags and modify their boolean equivalents.
+            for (i = 0; i < numFlags; i++)
+            {
+                // Is the current argument a flag/switch?
+                if (argv[i][0] == '-')
+                {
+                    if (argv[i] == "-s" || argv[i] == "-shift")
+                    {
+                        modShift = true;
+                    }
+                    else if (argv[i] == "-c" || argv[i] == "-ctrl")
+                    {
+                        modCtrl = true;
+                    }
+                    else if (argv[i] == "-a" || argv[i] == "-alt")
+                    {
+                        modAlt = true;
+                    }
+                    else
+                    {
+                        WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+                        return;
+                    }
+                }
+            }
+            // Next, we need to determine which keysym was pressed.
+            // argv[numFlags] -> string representing key.
+            // argv[numFlags + 1] ->
+            if (StringToKeySym(argv[numFlags], keySymbol))
+            {
+                if (AddKeyBind(keySymbol, modShift, modCtrl, modAlt, argv[numFlags + 1]))
+                {
+                    WriteOutput("Overwrote existing key bind.");
+                }
+                // Now re-call this function with a list containing only the key so it's
+                // current binds are re-printed.
+                vectStr newArgs;
+                newArgs.push_back(argv[numFlags]);
+                bind(newArgs);
+            }
+            else
+            {
+                WriteOutput("Error - '" + argv[numFlags] + "' is not a recognized key.");
+            }
+            break;
+        }
+
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+    }
+}
 
 void clear(vectStr const& argv)
 {
@@ -704,6 +885,16 @@ void tickrate(vectStr const& argv)
 ///
 void RegisterCommands()
 {
+
+    cmdList.push_back(new ConsoleCommand("bind", bind,
+        "Assigns a key combination to a particular console command. Usage:\n \n"
+        "    bind [flags] key cmd     Where each argument is as follows:\n \n"
+        "    [flags] Any combination (or none) of the following modifiers:\n"
+        "        -a, -alt   The Alt key.\n"
+        "        -c, -ctrl  The Ctrl key.\n"
+        "        -s, -shift The Shift key.\n"       
+        "    key     Clears the console history.\n"
+        "    cmd     The command to be bound to the key (use quotes for arguments)."));
 
     cmdList.push_back(new ConsoleCommand("clear", clear,
         "Clears the console output (default) or the console history. Usage:\n \n"

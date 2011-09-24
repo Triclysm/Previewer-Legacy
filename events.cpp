@@ -34,16 +34,19 @@
 #include "main.h"
 #include "render.h"
 #include "TCAnimLua.h"
+#include <list>
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-GLfloat mRotRate  = 0.5f,   ///< The mouse rotation rate (used when left clicking).
-        mMoveRate = 0.1f,   ///< The mouse movement rate (used when right clicking).
-        kRotRate  = 0.1f,   ///< The keyboard rotation rate.
-        kMoveRate = 0.1f;   ///< The keyboard move rate.
+GLfloat mRotRate   = 0.5f,   ///< The mouse rotation rate (used when left clicking).
+        mMoveRate  = 0.1f,   ///< The mouse movement rate (used when right clicking).
+        kRotRate   = 1.0f,   ///< The keyboard rotation rate.
+        kFastRRate = 3.0f,   ///< The fast keyboard rotation rate. 
+        kMoveRate  = 1.0f,   ///< The keyboard move rate.
+        kFastMRate = 3.0f;   ///< The fast keyboard move rate.
         
 int     mouseLastX,         ///< Last updated x-position of the mouse when the left mouse
                             ///  button is held down (-1 when the left button is up).
@@ -51,6 +54,8 @@ int     mouseLastX,         ///< Last updated x-position of the mouse when the l
                             ///  button is held down (-1 when the left button is up).
         mouseLastZ;         ///< Last updated y-position of the mouse when the right mouse
                             ///  button is held down (-1 when the right button is up).
+
+std::list<KeyBind*> kbList; ///< The list of all key binds.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -292,36 +297,94 @@ void HandleConsoleKey(SDLKey ksym, SDLMod kmod)
 ///
 void HandleNormalKey(SDLKey ksym, SDLMod kmod)
 {
+    bool shiftDown = kmod & KMOD_SHIFT,
+         ctrlDown  = kmod & KMOD_CTRL,
+         altDown   = kmod & KMOD_ALT;
+
+    std::list<KeyBind*>::iterator kbIt;
+    for (kbIt = kbList.begin(); kbIt != kbList.end(); kbIt++)
+    {
+        if ( (*kbIt)->ksym  == ksym      && (*kbIt)->mShift == shiftDown &&
+             (*kbIt)->mCtrl == ctrlDown  && (*kbIt)->mAlt   == altDown   )
+        {
+            ParseInput((*kbIt)->cmdStr);
+            break;
+        }
+    }
+    
     switch (ksym)
     {
         case SDLK_UP:
-            if (kmod & KMOD_LSHIFT || kmod & KMOD_RSHIFT)
+            if (kmod && shiftDown)
             {
-                viewPosZ += kMoveRate;
+                if (ctrlDown)
+                {
+                    viewPosZ += kFastMRate;
+                }
+                else
+                {
+                    viewPosZ += kMoveRate;
+                }
             }
             else
             {
-                viewRotY += kRotRate;
+                if (ctrlDown)
+                {
+                    viewRotY += kFastRRate;
+                }
+                else
+                {
+                    viewRotY += kRotRate;
+                }
             }
             break;
 
         case SDLK_DOWN:
-            if (kmod & KMOD_LSHIFT || kmod & KMOD_RSHIFT)
+            if (kmod && shiftDown)
             {
-                viewPosZ -= kMoveRate;
+                if (ctrlDown)
+                {
+                    viewPosZ -= kFastMRate;
+                }
+                else
+                {
+                    viewPosZ -= kMoveRate;
+                }
             }
             else
             {
-                viewRotY -= kRotRate;
+                if (ctrlDown)
+                {
+                    viewRotY -= kFastRRate;
+                }
+                else
+                {
+                    viewRotY -= kRotRate;
+                }
             }
             break;
 
         case SDLK_RIGHT:
-            viewRotX += kRotRate;
+            if (ctrlDown)
+            {
+                viewRotX += kFastRRate;
+            }
+            else
+            {
+                viewRotX += kRotRate;
+            }
             break;
 
         case SDLK_LEFT:
-            viewRotX -= kRotRate;
+            if (ctrlDown)
+            {
+                viewRotX -= kFastRRate;
+            }
+            else
+            {
+                viewRotX -= kRotRate;
+            }
+
             break;
 
         case SDLK_0:
@@ -345,4 +408,24 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             CallCommand("loadanim sendplane.lua");
             break;
     }
+}
+
+
+bool AddKeyBind(SDLKey const& keySym, bool const& shift, bool const& ctrl,
+                bool const& alt, std::string const& commandStr)
+{
+    bool alreadyExisted = false;
+    std::list<KeyBind*>::iterator kbIt;
+    for (kbIt = kbList.begin(); kbIt != kbList.end(); kbIt++)
+    {
+        if ( (*kbIt)->ksym  == keySym && (*kbIt)->mShift == shift &&
+             (*kbIt)->mCtrl == ctrl   && (*kbIt)->mAlt   == alt   )
+        {
+            kbList.erase(kbIt);
+            alreadyExisted = true;
+            break;
+        }
+    }
+    kbList.push_back(new KeyBind(keySym, shift, ctrl, alt, commandStr));
+    return alreadyExisted;
 }
