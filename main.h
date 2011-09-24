@@ -36,9 +36,9 @@
 #include "TCAnim.h"     // The Triclysm Animation Library.
 #include "SDL.h"        // The main SDL include file.
 
-#define TCP_NAME                "Triclysm Previewer"
-#define TCP_VERSION             "v0.12"
-#define TCP_WINDOW_TITLE        "Triclysm Previewer Alpha"  // The window title.
+#define TCP_NAME                "Triclysm"
+#define TCP_VERSION             "0.20"
+#define TCP_WINDOW_TITLE        "Triclysm (Alpha)"  // The window title.
 
 // Various error strings used in the initialization functions.
 #define TCP_ERROR_SDL_INIT      "Error - SDL initialization failed:\n%s\n"
@@ -63,7 +63,7 @@ extern byte          cubeSize[3];   // The current size of the cube.
 
 extern SDL_Surface  *screen;        // Pointer to the current SDL screen.
 extern int           scrBpp;        // The colour depth (bits per pixel) of the screen.
-extern const Uint32  scrFlags;      // the flags to use when setting the video mode.
+extern Uint32        scrFlags;      // the flags to use when setting the video mode.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

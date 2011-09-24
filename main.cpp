@@ -69,7 +69,7 @@ byte         cubeSize[3];   ///< The current size of the cube.  This variable sh
 
 SDL_Surface *screen;        ///< Pointer to the current SDL screen.
 int          scrBpp;        ///< The colour depth (bits per pixel) of the screen.
-const Uint32 scrFlags = SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
+Uint32 scrFlags = SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -86,6 +86,10 @@ const Uint32 scrFlags = SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
 ///
 int main(int argc, char *argv[])
 {
+    if (argc > 0 && (!strcmp(argv[0], "-f") || !strcmp(argv[0], "-fullscreen")))
+    {
+        scrFlags |= SDL_FULLSCREEN;
+    }
     runProgram = true;          // We set runProgram to true so the program runs.
     runAnim    = false;         // We don't run the animation until we set the cube size.
     SetTickRate(30);            // Before initializing anything, we set the tick rate.

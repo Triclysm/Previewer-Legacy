@@ -215,6 +215,83 @@ bool cmpStrNoCase(std::string const& first, std::string const& second)
 
 
 ///
+/// \brief Parse Input
+///
+/// Parses the passed string as a command by stripping all excess whitespace, splitting 
+/// the string at every command delimiter (';'), and calling \ref CallCommand for every
+/// individual command that is passed.
+///
+/// \param inputStr The string to be parsed as a command.
+///
+void ParseInput(std::string const& inputStr)
+{
+    std::string cmdStr = inputStr;
+    bool quotesMode = false;
+    for (size_t i = 0; i < cmdStr.length(); i++)
+    {
+        switch (cmdStr[i])
+        {
+            case '\"':  // Quotation Mark (") - Switch quotesMode
+                // We only need to switch quotesMode if the quotation mark was not escaped.
+                if (i > 0 && cmdStr[i-1] != '\\')
+                {
+                    quotesMode = !quotesMode;
+                }
+                break;
+            case ';':   // Semicolon (;) - Parse Existing Input
+            {
+                if (!quotesMode)    // So, as long as we're not in quotes mode...
+                {
+                    // Create a substring with everything before the semicolon.
+                    std::string currCmd = cmdStr.substr(0, i);
+                    if (!currCmd.empty())           // If there are remaining characters...
+                    {
+                        StripWhitespaceLT(currCmd);
+                        CallCommand(currCmd);           // Attempt to call it as a command.
+                    }
+                    cmdStr.erase(0, i + 1);         // Finally, erase the semicolon itself.
+                    i = 0;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    // Finally, parse whatever remains (if anything).
+    StripWhitespaceLT(cmdStr);
+    if (cmdStr.length() > 0)
+    {
+        CallCommand(cmdStr);
+    }
+}
+
+
+///
+/// \brief Parse Input
+///
+/// Parses the \ref currInput string as a command by passing it to the other overload
+/// of this function, and then clearing the input and resetting the cursor position.
+///
+/// \remarks This function is called when the user presses Enter in the console.
+///
+void ParseInput()
+{
+    if (!currInput.empty())
+    {
+        // First we add the current input to the console output and command history.
+        WriteOutput(inputPrefix + currInput);
+        WriteHistory(currInput);
+        // Next, we call the other ParseInput function to actually parse the input string.
+        ParseInput(currInput);
+    }
+    // Finally, we clear the current input, and reset the cursor position.
+    currInput.clear();
+    cursorPos = 0;
+}
+
+
+///
 /// \brief Call Command
 /// 
 /// Parses the passed command string as a console command.  This function will first 
@@ -335,45 +412,6 @@ void MoveCursor(bool left)
 {
     if      ( left && cursorPos > 0)                  cursorPos--;
     else if (!left && cursorPos < currInput.length()) cursorPos++;
-}
-
-
-///
-/// \brief Parse Input
-///
-/// Parses the \ref currInput string by stripping all excess whitespace, splitting the
-/// string at every command delimiter (';'), and calling \ref CallCommand for every
-/// individual command that is passed.
-///
-/// \remarks This function is called when the user presses Enter in the console.
-///
-void ParseInput()
-{
-    // First, we strip all leading and trailing whitespace from the command.
-    StripWhitespaceLT(currInput);
-    // So, if the remaining string is not blank...
-    if (!currInput.empty())
-    {
-        // We add the line to the console output and command history.
-        WriteOutput(inputPrefix + currInput);
-        WriteHistory(currInput);
-        currInput.push_back(';');
-        size_t scPos = currInput.find(';');
-        while (scPos != std::string::npos)
-        {
-            std::string currCmd = currInput.substr(0, scPos);
-            StripWhitespaceLT(currCmd);
-            if (!currCmd.empty())
-            {
-                CallCommand(currCmd);
-            }
-            currInput.erase(0, scPos + 1);
-            scPos = currInput.find(';');
-        }
-    }
-    // Finally, we clear the input, and reset the cursor position.
-    currInput.clear();
-    cursorPos = 0;
 }
 
 
