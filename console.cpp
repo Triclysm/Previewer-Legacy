@@ -36,6 +36,7 @@
 #include <cctype>       // Used for string comparison.
 #include <list>         // STL List container.
 #include <vector>       // STL Vector container.
+#include <fstream>
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -572,5 +573,26 @@ void SuggestCommand()
     {
         currInput = toSuggest;          // Replace the current input with the suggested
         cursorPos = toSuggest.length(); // command, and move the cursor to the end.
+    }
+}
+
+bool ParseFile(char const *fileName)
+{
+    bool read = false;
+    std::ifstream inFile(fileName);
+    if (inFile.is_open())
+    {
+        while (inFile.peek() != EOF)
+        {
+            std::string currLine;
+            getline(inFile, currLine);
+            ParseInput(currLine);
+        }
+        inFile.close();
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }

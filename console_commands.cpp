@@ -724,6 +724,21 @@ void loadanim(vectStr const& argv)
     delete argVals;
 }
 
+void loadscript(vectStr const& argv)
+{
+    if (argv.size() == 1)
+    {
+        if (!ParseFile(argv[0].c_str()))
+        {
+            WriteOutput("Error - could not load file '" + argv[0] + "'.  Ensure that the file exists and is not empty.");
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 1);
+    }
+}
+
 void quality(vectStr const& argv)
 {
     static unsigned int lastQuality = 4;    // Default quality is 4.
@@ -952,6 +967,11 @@ void RegisterCommands()
         "are ignored, but passing too few may result in an error).  Examples:\n \n"
         "    loadanim sendplane.lua    Loads the sendplane.lua animation.\n"
         "    loadanim rain.lua 4       Loads the rain.lua animation with 4 rain drops."));
+
+    cmdList.push_back(new ConsoleCommand("loadscript", loadscript,
+        "Loads a script from a file. Usage:\n \n"
+        "    loadscript filename\n \n"
+        "Where filename is the name of the script (including extension, usually .tcs)."));
 
     cmdList.push_back(new ConsoleCommand("quality", quality,
         "Changes the polygon count of the individual LED spheres making up the cube. "
