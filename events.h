@@ -48,10 +48,16 @@
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-extern GLfloat mRotRate,    // The mouse rotation rate (used when left-clicking).
-               mMoveRate,   // The mouse move rate (used when right-clicking).
-               kRotRate,    // The keyboard rotation rate.
-               kMoveRate;   // The keyboard move rate.
+class KeyBind;
+
+extern GLfloat mRotRate,            // The mouse rotation rate (used when left-clicking).
+               mMoveRate,           // The mouse move rate (used when right-clicking).
+               kRotRate,            // The keyboard rotation rate.
+               kFastRRate,          // The fast keyboard rotation rate. 
+               kMoveRate,           // The keyboard move rate.
+               kFastMRate;          // The fast keyboard move rate.
+
+extern std::list<KeyBind*> kbList;  // The key bind list.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -61,5 +67,38 @@ extern GLfloat mRotRate,    // The mouse rotation rate (used when left-clicking)
 void EventLoop();                                   // The main event loop.
 void HandleConsoleKey(SDLKey ksym, SDLMod kmod);    // Handles key presses for the console.
 void HandleNormalKey(SDLKey ksym, SDLMod kmod);     // Handles key presses for the program.
+void InitKeyBinds();                                // Initializes the key bind list.
+bool AddKeyBind(SDLKey const& keySym, bool const& shift, bool const& ctrl,
+                bool const& alt, std::string const& commandStr);
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                  CLASS DEFINITIONS                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+///
+/// \brief Key Bind Object
+///
+/// This class defines a single key bind, which is made up of a key symbol, key modifier,
+/// and command string.
+///
+class KeyBind {
+  public:
+    KeyBind(SDLKey const& keySym, bool const& shift, bool const& ctrl,
+            bool const& alt, std::string const& commandStr)
+    {
+        ksym   = keySym;
+        mShift = shift;
+        mCtrl = ctrl;
+        mAlt = alt;
+        cmdStr = commandStr;
+    }
+    SDLKey      ksym;
+    bool        mShift,
+                mCtrl,
+                mAlt;
+    std::string cmdStr;
+};
+
 
 #endif

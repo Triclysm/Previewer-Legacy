@@ -231,7 +231,7 @@ void ParseInput(std::string const& inputStr)
     {
         switch (cmdStr[i])
         {
-            case '\"':  // Quotation Mark (") - Switch quotesMode
+            case '"':  // Quotation Mark (") - Switch quotesMode
                 // We only need to switch quotesMode if the quotation mark was not escaped.
                 if (i > 0 && cmdStr[i-1] != '\\')
                 {
@@ -324,13 +324,16 @@ void CallCommand(std::string const& cmd)
         std::string              currArg;
         for (size_t i = icmd.length(); i < cmd.length(); i++)
         {
-            if (cmd[i] == '\"')     // If we have a double quote...
+            if (cmd[i] == '"')     // If we have a double quote...
             {
                 // Do we have an escape character behind us?
-                if ((i - 1) > 0 && cmd[i] == '\\')  // Is the quote escaped?
+                if ((i - 1) > 0 && cmd[i-1] == '\\')  // Is the quote escaped?
                 {
-                    // If so, then just add the quote.
-                    currArg.push_back('\"');
+                    // If so, then just replace the last character with the quote.
+                    if (currArg.length() > 0)
+                    {
+                        currArg[currArg.length() - 1] = '"';
+                    }
                 }
                 else
                 {
