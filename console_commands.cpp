@@ -765,7 +765,8 @@ void loadscript(vectStr const& argv)
     {
         if (!LoadScript(argv[0].c_str()))
         {
-            WriteOutput("Error - could not load file '" + argv[0] + "'.  Ensure that the file exists and is not empty.");
+            WriteOutput("Error - could not load file '" + argv[0] + "'.  Ensure that the "
+                        "file exists and is not empty.");
         }
     }
     else
@@ -819,13 +820,25 @@ void quit(vectStr const& argv)
 
 void resolution(vectStr const& argv)
 {
-    if (argv.size() == 2)
+    if (argv.size() == 2 || argv.size() == 3)
     {
+        // If the user wants to set the fullscreen switch...
+        if (argv.size() == 3 && (argv[2] == "-f" || argv[2] == "-fullscreen"))
+        {
+            if (!runProgram)    // They can only do so before the screen is initialized.
+            {
+                scrFlags |= SDL_FULLSCREEN;
+            }
+            else                // Otherwise, we just show them an error and return.
+            {
+                WriteOutput("Error - you cannot switch to fullscreen mode while the "
+                            "application is running. Place your command in the config.tcs "
+                            "file if you want to use this switch.");
+                return;
+            }
+        }
         int    newHeight,
-               newWidth,
-               oldHeight = screen->h,
-               oldWidth  = screen->w;
-        Uint32 oldFlags  = screen->flags;
+               newWidth;
         if ( !StringToInt(argv[0], newWidth)  ||
              !StringToInt(argv[1], newHeight) ||
              (newWidth <= 0) || (newHeight <= 0)        )
@@ -834,17 +847,35 @@ void resolution(vectStr const& argv)
         }
         else
         {
-            // First, we free the old video screen.
-            SDL_FreeSurface(screen);
-            // Next, we set the video mode of the new screen.
-            screen = SDL_SetVideoMode(newWidth, newHeight, scrBpp, scrFlags);
-            if (screen != NULL)     // So, if we got a handle to a new screen...
+            if (runProgram)
             {
-                Resize(screen->w, screen->h);   // Resize the OpenGL viewport.
+                // First, we obtain the old screen parameters.
+                int    oldHeight = screen->h,
+                       oldWidth  = screen->w;
+                Uint32 oldFlags  = screen->flags;
+                // Then, we free the old video screen.
+                SDL_FreeSurface(screen);
+                // Next, we set the video mode of the new screen.
+                screen = SDL_SetVideoMode(newWidth, newHeight, scrBpp, scrFlags);
+                if (screen != NULL)     // So, if we got a handle to a new screen...
+                {
+                    Resize(screen->w, screen->h);   // Resize the OpenGL viewport.
+                }
+                else                    // Else, try to set the old video mode again.
+                {
+                    screen = SDL_SetVideoMode(oldWidth, oldHeight, scrBpp, oldFlags);
+                    if (screen == NULL)
+                    {
+                        // Show the appropriate error to the user, and exit.
+                        fprintf(stderr, TC_ERROR_SDL_GLVIDMODE, SDL_GetError());
+                        exit(2);
+                    }
+                }
             }
-            else                    // Else, try to set the old video mode again.
+            else
             {
-                screen = SDL_SetVideoMode(oldWidth, oldHeight, scrBpp, oldFlags);
+                iScrWidth  = newWidth;
+                iScrHeight = newHeight;
             }
         }
     }
@@ -1119,7 +1150,10 @@ void RegisterCommands()
         "Sets the screen resolution of the program.  Usage:\n\n"
         "    resolution width height    Where width and height are the new resolutions "
         "(positive integer values) for the screen.\n\n"
-        "If the screen mode could not be set, the screen is set back to the old one."));
+        "If the screen mode could not be set, the screen is set back to the old one. "
+        "Before the program is initialized, you can call this program with a fullscreen "
+        "switch (e.g. resolution 640 480 -f).  Most people place it in the config.tcs "
+        "file, but it can be used any time before the screen is initialized."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
         "Toggles or sets the animation from updating.  Usage:\n\n"

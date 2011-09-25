@@ -52,12 +52,11 @@ SDL_Thread *animThread;         ///< The mutex lock for the \ref currAnim object
 SDL_mutex  *animMutex;          ///< The animation thread object.
 bool        threadInit = false; ///< Flag used to check if the animation thread is running.
 
-Uint32    tickRate,         ///< The current tick rate (ticks/second).
-          msPerTick;        ///< The amount of milliseconds/tick (see \ref SetTickRate).
-const int scrWidth  = 720,  ///< The initial screen width (in pixels).
-          scrHeight = 480;  ///< The initial screen height (in pixels).
+Uint32      tickRate,           ///< The current tick rate (ticks/second).
+            msPerTick;          ///< Milliseconds per tick (see \ref SetTickRate).
+int         iScrWidth  = 640,   ///< The initial screen width (in pixels).
+            iScrHeight = 480;   ///< The initial screen height (in pixels).
 
-          
 TCAnim      *currAnim;      ///< Pointer to the current animation.
 bool         showFps,       ///< True to render the FPS counter, false to hide it.
              showCube,      ///< True to render the actual cube, false to hide it.
@@ -71,7 +70,8 @@ byte         cubeSize[3];   ///< The current size of the cube.  This variable sh
 
 SDL_Surface *screen;        ///< Pointer to the current SDL screen.
 int          scrBpp;        ///< The colour depth (bits per pixel) of the screen.
-Uint32 scrFlags = SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
+Uint32 scrFlags =           ///< The initial SDL screen flags.
+    SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -88,29 +88,31 @@ Uint32 scrFlags = SDL_OPENGL | SDL_RESIZABLE | SDL_INIT_TIMER;
 ///
 int main(int argc, char *argv[])
 {
-    if (argc > 0 && (!strcmp(argv[0], "-f") || !strcmp(argv[0], "-fullscreen")))
-    {
-        scrFlags |= SDL_FULLSCREEN;
-    }
     showCube   = true;          // Initially, we set showCube as true to display the cube.
-    runProgram = true;          // We also runProgram to true so the program runs.
-    runAnim    = false;         // We don't run the animation until we set the cube size.
-    SetTickRate(30);            // Before initializing anything, we set the tick rate.
+    runProgram = false;         // We also don't run the program (event loop),
+    runAnim    = false;         // or the animation until everything is initialized.
+    SetTickRate(30);            // Also before initializing anything, we set the tick rate,
+    SetCubeSize(8, 8, 8);       // and the initial cube size (also sets currAnim).
+
+    InitConsole(300, 15, 200);  // Now, we can first initialize the scripting console.
+    DisplayInitMessage();       // After some program info is written to the console,
+    LoadScript("config.tcs");   // try to load the config.tcs script (no error is shown if
+                                // it can't be found, since it's not explicitly required).
 
     // Now, we attempt to initialize the SDL subsystems.  If we couldn't initialize SDL...
     if (!InitSDL()) return 1;   // We cannot continue, so we have to return.
+    InitGL();                   // Now that we have a screen, we can initialize the OpenGL.
 
-    InitGL();                   // Next, we initialize our OpenGL viewport,
-    InitConsole(300, 15, 200);  // and initialize the scripting console.
+    // If we get here, all subsystems have been initialized, so we can set Triclysm to run.
+    runAnim = true;             // After we set both runAnim and runProgram to true,
+    runProgram = true;          // we enter the main event loop (defined in events.h).
+    // The last thing we need to do is start the animation update thread (we cannot
+    // continue without it). This thread calls currAnim->Update() at the current tickrate.
+    if (!InitAnimThread()) return 1;    // We cannot continue without threads, so return.
 
-    if (!InitAnimThread()) return 1;    // We now initialize the animation thread and mutex.
-
-    SetCubeSize(8, 8, 8);       // Now, we can set the initial cube size (and animation),
-    runAnim = true;             // allow the animation (thread) to be run,
-    DisplayInitMessage();       // display some program information in the console,
-    EventLoop();                // and enter the main event loop (defined in events.h).
-    CleanupSDL();               // Lastly, we clean up SDL when our event loop returns,
-    return 0;                   // and return 0 to indicate a successful program run.
+    EventLoop();        // Everything is ok, so we can finally start the main event loop.
+    CleanupSDL();       // Lastly, we clean up SDL when our event loop returns,
+    return 0;           // and return 0 to indicate a successful program run.
 }
 
 
@@ -146,7 +148,7 @@ bool InitSDL()
     // We also store the bits per pixel from the screen.
     scrBpp = vinfo->vfmt->BitsPerPixel;
     // Now, we attempt to set the video mode using the appropriate bpp and flags.
-    screen = SDL_SetVideoMode(scrWidth, scrHeight, scrBpp, scrFlags);
+    screen = SDL_SetVideoMode(iScrWidth, iScrHeight, scrBpp, scrFlags);
     if (screen == NULL)             // So, if we couldn't set the video mode...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
@@ -355,7 +357,7 @@ int UpdateAnim(void *unused)
 ///
 void LockAnimMutex()
 {
-    if (SDL_mutexP(animMutex) == -1)
+    if (runProgram && SDL_mutexP(animMutex) == -1)
     {
         fprintf(stderr, TC_ERROR_MUTEX_LOCK, SDL_GetError());
         exit(1);
@@ -372,7 +374,7 @@ void LockAnimMutex()
 ///
 void UnlockAnimMutex()
 {
-    if (SDL_mutexV(animMutex) == -1)
+    if (runProgram && SDL_mutexV(animMutex) == -1)
     {
         fprintf(stderr, TC_ERROR_MUTEX_UNLOCK, SDL_GetError());
         exit(1);
