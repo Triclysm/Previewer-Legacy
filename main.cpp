@@ -62,8 +62,9 @@ TCAnim      *currAnim;      ///< Pointer to the current animation.
 bool         showFps,       ///< True to render the FPS counter, false to hide it.
              showCube,      ///< True to render the actual cube, false to hide it.
              runAnim,       ///< True to update the current animation, false otherwise
-             runProgram;    ///< True to continue running the program (handling events, 
+             runProgram,    ///< True to continue running the program (handling events, 
                             ///  calling the main render loop, etc...), false to quit.
+             nullAnim;      ///< True if currAnim is the default ("null") animation.
 
 byte         cubeSize[3];   ///< The current size of the cube.  This variable should not
                             ///  be modified, use the \ref SetCubeSize function instead.
@@ -192,13 +193,13 @@ void SetTickRate(Uint32 newRate)
 /// \brief Set Animation
 ///
 /// Updates the current animation pointed to by \ref currAnim with the new animation
-/// passed to this function.
+/// passed to this function, and updates the state of the nullAnim condition.
 ///
 /// \param   newAnim A pointer to the new animation.  This should be initialized with
 ///          the \ref cubeSize variable to avoid cube size issues.
 ///
 /// \returns True if the thread and mutex were initialized successfully, false otherwise.
-/// \see     cubeSize | currAnim
+/// \see     cubeSize | currAnim | nullAnim
 ///
 void SetAnim(TCAnim *newAnim)
 {
@@ -209,9 +210,15 @@ void SetAnim(TCAnim *newAnim)
     // If newAnim is NULL, we set currAnim to a new, default ("blank") animation.
     delete currAnim;
     if (newAnim != NULL)
+    {
         currAnim = newAnim;
+        nullAnim = false;
+    }
     else
+    {
         currAnim = new TCAnim(cubeSize);
+        nullAnim = true;
+    }
     // Finally, we unlock the animMutex before returning.
     UnlockAnimMutex();
 }

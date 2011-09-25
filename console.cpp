@@ -30,13 +30,16 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "console.h"    // Complimentary header to this source file.
+#include "main.h"
 #include "TCCube.h"     // Required for the GetConstantValue function.
+#include "SDL.h"
 
 #include <string>       // Strings library.
 #include <cctype>       // Used for string comparison.
 #include <list>         // STL List container.
 #include <vector>       // STL Vector container.
 #include <fstream>
+#include <queue>
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -53,16 +56,21 @@ bool        historyRetrieved;   ///< True if history has been retrieved, false o
 size_t maxHistoryLines,         ///< The maximum number of history entires to cache.
        maxOutputLines;          ///< The maximum number of output lines to cache.
        
-std::list<ConsoleCommand*> cmdList;             ///< The list of console commands.
-std::list<CommandAlias*>   aliasList;           ///< The list of command aliases.
+std::list<ConsoleCommand*>       cmdList;       ///< The list of console commands.
+std::list<CommandAlias*>         aliasList;     ///< The list of command aliases.
 
 std::list<std::string>           outputList,    ///< The list of output lines.
                                  historyList;   ///< The list of history entries.
 std::list<std::string>::iterator outputIt,      ///< Output list iterator.
                                  historyIt;     ///< History list iterator.
 
-const std::string inputPrefix = " > ";          ///< Prefix for the current command input.
+const std::string inputPrefix = " > ";  ///< Prefix for the current command input.
 
+std::queue<std::string> commandQueue;   ///< The command queue (used to queue any
+                                        ///  commands after a wait is issued).
+unsigned int waitMode,                  ///< The current wait mode (0 to run).
+             waitAmount,                ///< The current wait amount.
+             waitInitAmount;            ///< The initial value of the wait condition.
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                FUNCTION DEFINITIONS                                 *
@@ -247,8 +255,8 @@ void ParseInput(std::string const& inputStr)
                     std::string currCmd = cmdStr.substr(0, i);
                     if (!currCmd.empty())           // If there are remaining characters...
                     {
-                        StripWhitespaceLT(currCmd);
-                        CallCommand(currCmd);           // Attempt to call it as a command.
+                        StripWhitespaceLT(currCmd);     // Strip any excess whitespace and
+                        CallCommand(currCmd);           // attempt to call it as a command.
                     }
                     cmdStr.erase(0, i + 1);         // Finally, erase the semicolon itself.
                     i = 0;
@@ -306,6 +314,13 @@ void ParseInput()
 ///
 void CallCommand(std::string const& cmd)
 {
+    // If the wait mode is non-zero (i.e. we are currently in a wait of some kind), then 
+    // we queue the command instead of running it right now.
+    if (waitMode != 0)
+    {
+        commandQueue.push(cmd);
+        return;
+    }
     std::string icmd;   // Holds just the name of the command (not the whole string).
     // First, we need to get the value of icmd.
     if (cmd.find(' ') != std::string::npos)     // So, if there is a space in the string...
@@ -605,5 +620,122 @@ bool LoadScript(char const *fileName)
     else
     {
         return false;
+    }
+}
+
+
+///
+/// \brief Run Command Queue
+///
+/// Runs all commands currently held within the command queue, 
+///
+///
+void RunCommandQueue()
+{
+    while (!commandQueue.empty())
+    {
+        CheckWaitMode();    // First, we check the wait condition and update the wait mode.
+        if (waitMode == 0)  // So, if the condition was met, or we don't have to wait...
+        {
+            CallCommand(commandQueue.front());
+            commandQueue.pop();
+        }
+        else                // Else, if we are still waiting...
+        {
+            break;              // Break out of the loop, so we don't parse any more.
+        }
+    }
+}
+
+
+///
+/// \brief Check Wait Mode
+///
+/// Checks the condition on the current wait command, and resets the waitMode variable if 
+/// the wait condition was met.  Otherwise, nothing is modified.
+///
+void CheckWaitMode()
+{
+    switch (waitMode)
+    {
+        case 0:         // Mode 0: No Wait
+            break;
+        
+        case 1:         // Mode 1: Wait Time (milliseconds)
+        case 2:         // Mode 2: Wait Time (seconds, waitAmount is in milliseconds)
+        {
+            // If it has been at least waitAmount ticks since the wait command...
+            if ((SDL_GetTicks() - waitInitAmount) >= waitAmount)
+            {
+                // Reset the wait mode so the command queue continues.
+                waitMode = 0;
+            }
+            break;
+        }
+        
+        case 3:         // Mode 3: Wait Ticks
+        {
+            LockAnimMutex();        // First, we lock the animation mutex.
+            // So, if the current animation's tick count is large enough...
+            if ((currAnim->GetTicks() - waitInitAmount) >= waitAmount)
+            {
+                waitMode = 0;           // We can reset the wait mode.
+            }
+            UnlockAnimMutex();      // Finally, we unlock the mutex.
+            break;
+        }
+        
+        case 4:         // Mode 4: Wait Iterations
+        {
+            LockAnimMutex();        // First, we lock the animation mutex.
+            // So, if the current animation's iteration count is large enough...
+            if ((currAnim->GetIterations() - waitInitAmount) >= waitAmount)
+            {
+                waitMode = 0;           // We can reset the wait mode.
+            }
+            UnlockAnimMutex();      // Finally, we unlock the mutex.
+            break;
+        }
+        
+        default:        // There should be no other modes, so reset the mode.
+            waitMode = 0;
+            break;
+    }
+}
+
+void SetWaitMode(unsigned int mode, unsigned int delay)
+{
+    // First, we simply copy the mode and delay values into the proper variables.
+    waitMode   = mode;
+    waitAmount = (mode == 2) ? (delay * 1000) : (delay);
+    // And finally, we set the value of waitInitAmount based on the current mode.
+    switch (mode)
+    {
+        case 0:     // Mode 0: No Wait
+            waitInitAmount = 0;
+            break;
+
+        case 1:     // Mode 1: Wait Time (milliseconds)// Mode 
+        case 2:     // Mode 2: Wait Time (seconds, waitAmount is in milliseconds)
+            waitInitAmount = SDL_GetTicks();
+            break;
+
+        case 3:     // Mode 3: Wait Ticks
+            LockAnimMutex();        // First, we lock the animation mutex.
+            // Next, we store the animation's current tick count.
+            waitInitAmount = currAnim->GetTicks();
+            UnlockAnimMutex();      // Finally, we unlock the mutex.
+            break;
+    
+        case 4:     // Mode 4: Wait Iterations
+            LockAnimMutex();        // First, we lock the animation mutex.
+            // Next, we store the animation's current iteration count.
+            waitInitAmount = currAnim->GetIterations();
+            UnlockAnimMutex();      // Finally, we unlock the mutex.
+            break;
+
+        default:    // There should be no other modes, so reset the mode.
+            SetWaitMode(0, 0);
+            break;
     }
 }
