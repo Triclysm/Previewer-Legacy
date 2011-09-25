@@ -576,7 +576,18 @@ void SuggestCommand()
     }
 }
 
-bool ParseFile(char const *fileName)
+
+///
+/// \brief Load Script
+///
+/// Attempts to open a stream to the passed fileName.  If the file stream was opened, each
+/// line in the file is read and passed to the \ref ParseInput function.
+///
+/// \returns True if the file was successfully opened and parsed, false otherwise.
+///
+/// \see ParseInput
+///
+bool LoadScript(char const *fileName)
 {
     bool read = false;
     std::ifstream inFile(fileName);
