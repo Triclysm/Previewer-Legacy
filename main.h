@@ -67,6 +67,10 @@ extern SDL_Surface  *screen;        // Pointer to the current SDL screen.
 extern int           scrBpp;        // The colour depth (bits per pixel) of the screen.
 extern Uint32        scrFlags;      // the flags to use when setting the video mode.
 
+extern int           iScrWidth,     // The initial screen width (in pixels).
+                     iScrHeight;    // The initial screen height (in pixels).
+
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                 FUNCTION PROTOTYPES                                 *

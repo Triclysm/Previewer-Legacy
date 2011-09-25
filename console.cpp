@@ -654,6 +654,8 @@ void RunCommandQueue()
 /// Checks the condition on the current wait command, and resets the waitMode variable if 
 /// the wait condition was met.  Otherwise, nothing is modified.
 ///
+/// \see SetWaitMode | waitMode | waitAmount | waitInitAmount
+///
 void CheckWaitMode()
 {
     switch (waitMode)
@@ -703,6 +705,18 @@ void CheckWaitMode()
     }
 }
 
+
+///
+/// \brief Set Wait Mode
+///
+/// Sets the current wait mode to the passed amounts.  If mode is an invalid value, or is
+/// zero, the wait mode is reset.  This function also initializes \ref waitInitAmount.
+///
+/// \param mode  The waiting mode to set (ms = 1, seconds = 2, ticks = 3, iterations = 4).
+/// \param delay The amount to wait for (units as specified per the mode).
+///
+/// \see CheckWaitAmount | waitMode | waitAmount | waitInitAmount
+///
 void SetWaitMode(unsigned int mode, unsigned int delay)
 {
     // First, we simply copy the mode and delay values into the proper variables.
