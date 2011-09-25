@@ -657,7 +657,7 @@ void help(vectStr const& argv)
 {
     if (argv.size() == 0)       // If the user wants to show the quick help...
     {
-        WriteOutput("Welcome to " TCP_NAME " version " TCP_VERSION "!");
+        WriteOutput("Welcome to " TC_NAME " version " TC_VERSION "!");
         WriteOutput("To get help for a command, type \"help [command]\".");
         WriteOutput("To see a list of commands, type \"list -c\" (or type \"help list\" for more information about the list command).");
     }

@@ -36,18 +36,18 @@
 #include "TCAnim.h"     // The Triclysm Animation Library.
 #include "SDL.h"        // The main SDL include file.
 
-#define TCP_NAME                "Triclysm"
-#define TCP_VERSION             "0.20"
-#define TCP_WINDOW_TITLE        "Triclysm (Alpha)"  // The window title.
+#define TC_NAME                "Triclysm"
+#define TC_VERSION             "0.20"
+#define TC_WINDOW_TITLE        "Triclysm (Alpha)"  // The window title.
 
 // Various error strings used in the initialization functions.
-#define TCP_ERROR_SDL_INIT      "Error - SDL initialization failed:\n%s\n"
-#define TCP_ERROR_SDL_VIDINFO   "Error - could not obtain SDL video information:\n%s\n"
-#define TCP_ERROR_SDL_GLVIDMODE "Error - could not set the SDL/OpenGL video mode:\n%s\n"
-#define TCP_ERROR_THREAD_INIT   "Error - could not create animation thread object:\n%s\n"
-#define TCP_ERROR_MUTEX_INIT    "Error - could not create animation mutex object:\n%s\n"
-#define TCP_ERROR_MUTEX_LOCK    "Error - could not lock animation mutex:\n%s\n"
-#define TCP_ERROR_MUTEX_UNLOCK  "Error - could not unlock animation mutex:\n%s\n"
+#define TC_ERROR_SDL_INIT      "Error - SDL initialization failed:\n%s\n"
+#define TC_ERROR_SDL_VIDINFO   "Error - could not obtain SDL video information:\n%s\n"
+#define TC_ERROR_SDL_GLVIDMODE "Error - could not set the SDL/OpenGL video mode:\n%s\n"
+#define TC_ERROR_THREAD_INIT   "Error - could not create animation thread object:\n%s\n"
+#define TC_ERROR_MUTEX_INIT    "Error - could not create animation mutex object:\n%s\n"
+#define TC_ERROR_MUTEX_LOCK    "Error - could not lock animation mutex:\n%s\n"
+#define TC_ERROR_MUTEX_UNLOCK  "Error - could not unlock animation mutex:\n%s\n"
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -75,6 +75,7 @@ extern Uint32        scrFlags;      // the flags to use when setting the video m
 int  main(int argc, char *argv[]);              // The main program entry point.
 bool InitSDL();                                 // Initializes all SDL subsystems.
 void CleanupSDL();                              // Cleans up all SDL objects.
+void DisplayInitMessage();                      // Writes initialization info to console.
 void SetTickRate(Uint32 newRate);               // Sets the animation tick rate.
 void SetCubeSize(byte sx, byte sy, byte sz);    // Updates the current cube size.
 byte *GetCubeSize();                            // Returns an array of the cube size.
