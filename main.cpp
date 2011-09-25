@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 
     SetCubeSize(8, 8, 8);       // Now, we can set the initial cube size (and animation),
     runAnim = true;             // allow the animation (thread) to be run,
+    DisplayInitMessage();       // display some program information in the console,
     EventLoop();                // and enter the main event loop (defined in events.h).
     CleanupSDL();               // Lastly, we clean up SDL when our event loop returns,
     return 0;                   // and return 0 to indicate a successful program run.
@@ -127,7 +128,7 @@ bool InitSDL()
     if (SDL_Init(SDL_INIT_VIDEO) != 0)  // So, if the initialization failed...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
-        fprintf(stderr, TCP_ERROR_SDL_INIT, SDL_GetError());
+        fprintf(stderr, TC_ERROR_SDL_INIT, SDL_GetError());
         SDL_Quit();
         return false;
     }
@@ -136,7 +137,7 @@ bool InitSDL()
     if (vinfo == NULL)              // So, if we couldn't obtain the video information...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
-        fprintf(stderr, TCP_ERROR_SDL_VIDINFO, SDL_GetError());
+        fprintf(stderr, TC_ERROR_SDL_VIDINFO, SDL_GetError());
         SDL_Quit();
         return false;
     }
@@ -149,12 +150,12 @@ bool InitSDL()
     if (screen == NULL)             // So, if we couldn't set the video mode...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
-        fprintf(stderr, TCP_ERROR_SDL_GLVIDMODE, SDL_GetError());
+        fprintf(stderr, TC_ERROR_SDL_GLVIDMODE, SDL_GetError());
         SDL_Quit();
         return false;
     }
     // Last, we set the window title, enable key repeats, and return true.
-    SDL_WM_SetCaption(TCP_WINDOW_TITLE, "test");
+    SDL_WM_SetCaption(TC_WINDOW_TITLE, "test");
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
     return true;
 }
@@ -172,6 +173,18 @@ void CleanupSDL()
     SDL_DestroyMutex(animMutex);
     delete currAnim;
     SDL_Quit();
+}
+
+
+///
+/// Display Initialization Message
+///
+/// Writes some program information to the console, such as the version, and displays
+///
+///
+void DisplayInitMessage()
+{
+    WriteOutput("" TC_NAME " [Version " TC_VERSION "]\n");
 }
 
 
@@ -290,7 +303,7 @@ bool InitAnimThread()
     if (animMutex == NULL)          // If we couldn't create the mutex...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
-        fprintf(stderr, TCP_ERROR_MUTEX_INIT, SDL_GetError());
+        fprintf(stderr, TC_ERROR_MUTEX_INIT, SDL_GetError());
         SDL_Quit();
         return false;
     }
@@ -299,7 +312,7 @@ bool InitAnimThread()
     if (animThread == NULL)         // If we couldn't create the thread...
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
-        fprintf(stderr, TCP_ERROR_THREAD_INIT, SDL_GetError());
+        fprintf(stderr, TC_ERROR_THREAD_INIT, SDL_GetError());
         SDL_Quit();
         return false;
     }
@@ -344,7 +357,7 @@ void LockAnimMutex()
 {
     if (SDL_mutexP(animMutex) == -1)
     {
-        fprintf(stderr, TCP_ERROR_MUTEX_LOCK, SDL_GetError());
+        fprintf(stderr, TC_ERROR_MUTEX_LOCK, SDL_GetError());
         exit(1);
     }
 }
@@ -361,7 +374,7 @@ void UnlockAnimMutex()
 {
     if (SDL_mutexV(animMutex) == -1)
     {
-        fprintf(stderr, TCP_ERROR_MUTEX_UNLOCK, SDL_GetError());
+        fprintf(stderr, TC_ERROR_MUTEX_UNLOCK, SDL_GetError());
         exit(1);
     }
 }
