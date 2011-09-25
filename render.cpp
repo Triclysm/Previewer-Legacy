@@ -207,7 +207,10 @@ void RenderScene()
     // Next, we clear the OpenGL scene with the specified clear colour.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Now, we can begin to draw everything on the screen in the proper order.
-    DrawCube();                     // First, we draw the LED cube itself.
+    if (showCube)                   // So, if we are supposed to render the cube...
+    {
+        DrawCube();                     // Render the LED cube itself.
+    }
     if (showFps || consoleEnabled)  // Next, do we need to show the FPS counter or console?
     {
         ProjModeBegin();                        // If so, we first enter projection mode.
@@ -468,10 +471,11 @@ void DrawConsoleBg()
 ///
 /// \brief Draw Console Text
 ///
-/// Renders all console text (assuming the console background has been already rendered).
+/// Renders all console text (assuming the console background has been already rendered),
+/// including the input prefix, the user input, the console output, and the cursor.
 ///
-/// \remarks The can only be called when in both the projection and font mode.
-/// \see     ProjModeBegin | FontModeBegin
+/// \remarks The should only be called when in both the projection and font mode.
+/// \see     ProjModeBegin | FontModeBegin | cursorFlashRate | outputList | currInput
 ///
 void DrawConsoleText()
 {   
@@ -698,6 +702,7 @@ void DrawStringWrapped(std::string *toDraw, GLfloat xMin, GLfloat xMax, GLfloat 
 ///
 size_t GetNumLines(size_t strLen)
 {
+    if (strLen == 0) return 1;  // Small fix to allow blank strings to be rendered.
     // We can just calculate the number of lines based on the characters per line count.
     size_t numLines = strLen / charsPerLine;
     // Finally, we return the number (and correct it if there was any decimal rounding).

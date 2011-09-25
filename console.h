@@ -86,7 +86,7 @@ void ClearHistory();
 void CallCommand(std::string const& cmd);
 void ParseInput();
 void ParseInput(std::string const& inputStr);
-bool ParseFile(char const *fileName);
+bool LoadScript(char const *fileName);
 ConsoleCommand *GetCommand(std::string const& cmdName);
 void SuggestCommand();
 

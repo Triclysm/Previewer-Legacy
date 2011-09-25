@@ -60,6 +60,7 @@ const int scrWidth  = 720,  ///< The initial screen width (in pixels).
           
 TCAnim      *currAnim;      ///< Pointer to the current animation.
 bool         showFps,       ///< True to render the FPS counter, false to hide it.
+             showCube,      ///< True to render the actual cube, false to hide it.
              runAnim,       ///< True to update the current animation, false otherwise
              runProgram;    ///< True to continue running the program (handling events, 
                             ///  calling the main render loop, etc...), false to quit.
@@ -90,7 +91,8 @@ int main(int argc, char *argv[])
     {
         scrFlags |= SDL_FULLSCREEN;
     }
-    runProgram = true;          // We set runProgram to true so the program runs.
+    showCube   = true;          // Initially, we set showCube as true to display the cube.
+    runProgram = true;          // We also runProgram to true so the program runs.
     runAnim    = false;         // We don't run the animation until we set the cube size.
     SetTickRate(30);            // Before initializing anything, we set the tick rate.
 

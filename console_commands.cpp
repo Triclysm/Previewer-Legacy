@@ -454,7 +454,8 @@ void color(vectStr const& argv)
     int argOffset = 0;
     bool offLed   = false;
     // So, if we have 4 or 5 arguments, and the first argument is a switch...
-    if ((argv.size() == 4 || argv.size() == 5) && argv[0][0] == '-')
+    if ((argv.size() == 4 || argv.size() == 5)      &&
+        (argv[0].length() > 0 && argv[0][0] == '-') )
     {
         argOffset = 1;
         if (argv[0] == "-on")
@@ -570,12 +571,45 @@ void cubesize(vectStr const& argv)
 
 void echo(vectStr const& argv)
 {
-    for (size_t i = 0; i < argv.size(); i++)
+    // So, as long as we have some arguments...
+    if (argv.size() > 0)
     {
-        std::string output;
-        output = "Arg ";
-        output += ('0' + i);
-        WriteOutput(output + " = " + argv[i]);
+        // If the first argument is a switch...
+        if (argv[0].length() > 0 && argv[0][0] == '-')
+        {
+            // If we are in verbose mode, print each argument on a different line.
+            if (argv[0] == "-v" || argv[0] == "-verbose")
+            {
+                size_t i = 0;
+                // If we need to omit the first two arguments...
+                if (argv.size() > 1 && argv[1].length() > 0 &&
+                   (argv[1] == "-o" || argv[1] == "-omit")  )
+                {
+                    i = 2;
+                }
+                for (; i < argv.size(); i++)
+                {
+                    std::string output;
+                    output = "Argument ";
+                    output += ('0' + i);
+                    WriteOutput(output + " = " + argv[i]);
+                }
+            }
+        }
+        else
+        {
+            std::string output;
+            for (size_t i = 0; i < argv.size(); i++)
+            {
+                if (i > 0) output += ' ';
+                output += argv[i];
+            }
+            WriteOutput(output);
+        }
+    }
+    else
+    {
+        WriteOutput("");
     }
 }
 
@@ -632,7 +666,8 @@ void help(vectStr const& argv)
         ConsoleCommand *command = GetCommand(argv[0]);  // Parse the argument as a command.
         if (command != NULL)                            // If a command was found...
         {
-            WriteOutput(command->help);                     // Output it's help message.
+            WriteOutput(command->help);                     // Output it's help message,
+            WriteOutput("");                                // and a blank line afterwards.
         }
         else                                            // Else, if it couldn't be found...
         {
@@ -728,7 +763,7 @@ void loadscript(vectStr const& argv)
 {
     if (argv.size() == 1)
     {
-        if (!ParseFile(argv[0].c_str()))
+        if (!LoadScript(argv[0].c_str()))
         {
             WriteOutput("Error - could not load file '" + argv[0] + "'.  Ensure that the file exists and is not empty.");
         }
@@ -843,6 +878,30 @@ void runanim(vectStr const& argv)
     }
 }
 
+void showcube(vectStr const& argv)
+{
+    switch (argv.size())
+    {
+        case 0:
+            showCube = !showCube;
+            break;
+        case 1:
+            bool tmpResult;
+            if (StringToBool(argv[0], tmpResult))
+            {
+                showCube = tmpResult;
+            }
+            else
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            break;
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+    }
+}
+
 void showfps(vectStr const& argv)
 {
     switch (argv.size())
@@ -900,31 +959,30 @@ void tickrate(vectStr const& argv)
 ///
 void RegisterCommands()
 {
-
     cmdList.push_back(new ConsoleCommand("bind", bind,
-        "Assigns a key combination to a particular console command. Usage:\n \n"
-        "    bind [flags] key cmd     Where each argument is as follows:\n \n"
+        "Assigns a key combination to a particular console command. Usage:\n\n"
+        "    bind [flags] key cmd     Where each argument is as follows:\n\n"
         "    [flags] Any combination (or none) of the following modifiers:\n"
-        "        -a, -alt   The Alt key.\n"
-        "        -c, -ctrl  The Ctrl key.\n"
-        "        -s, -shift The Shift key.\n"       
+        "              -a, -alt    The Alt key.\n"
+        "              -c, -ctrl   The Ctrl key.\n"
+        "              -s, -shift  The Shift key.\n"       
         "    key     Clears the console history.\n"
         "    cmd     The command to be bound to the key (use quotes for arguments)."));
 
     cmdList.push_back(new ConsoleCommand("clear", clear,
-        "Clears the console output (default) or the console history. Usage:\n \n"
+        "Clears the console output (default) or the console history. Usage:\n\n"
         "    clear [arg]     Where [arg] is one of the following:\n"
         "    -o, -output     Clears the console output.\n"
-        "    -h, -history    Clears the console history.\n \n"
+        "    -h, -history    Clears the console history.\n\n"
         "If [arg] is omitted, the command will default to -output."));
 
     cmdList.push_back(new ConsoleCommand("color", color,
         "Used to change the color of the on or off LEDs. Has no effect on RGB animations. "
-        "Usage:\n \n"
-        "    color [state] red green blue [alpha]\n \n"
+        "Usage:\n\n"
+        "    color [state] red green blue [alpha]\n\n"
         "Where [state] can be -on or -off (if omitted, defaults to -on), and red, green, "
         "blue, and the optional alpha components are integer values from 0 to 255. If the "
-        "alpha component is omitted, its value is unmodified.  Examples:\n \n"
+        "alpha component is omitted, its value is unmodified.  Examples:\n\n"
         "    color 255 0 0             Sets the color of the on LEDs to red.\n"
         "    color -on 0 0 255         Sets the color of the on LEDs to blue.\n"
         "    color -off 0 255 0 127    Sets the color of the off LEDs to green at 50% "
@@ -932,80 +990,93 @@ void RegisterCommands()
 
     cmdList.push_back(new ConsoleCommand("cubesize", cubesize,
         "Resets the dimensions of the cube. You can pass a single value to make a cube, "
-        "or pass three (in the order x, y, z) to make a rectangular prism. Usage:\n \n"
+        "or pass three (in the order x, y, z) to make a rectangular prism. Usage:\n\n"
         "    cubesize 8        Sets the size to an 8*8*8 cube.\n"
-        "    cubesize 4 6 8    Sets the size to an 4*6*8 (x*y*z) rectangular prism.\n \n"
+        "    cubesize 4 6 8    Sets the size to an 4*6*8 (x*y*z) rectangular prism.\n\n"
         "Calling this function without any arguments displays the current cube size. "
         "Note that this function will close the currently running animation."));
 
     cmdList.push_back(new ConsoleCommand("echo", echo,
-        "Outputs each passed command line argument as it is parsed."));
+        "Outputs each passed command line argument as it is parsed. Usage:\n\n"
+        "    echo [-v | -verbose] [-o | -omit] [arg1, arg2, ...]\n\n"
+        "If the flags are omitted, each argument is written to the console output in the "
+        "order they were passed to the function, with a space character between them.\n\n"
+        "If -v or -verbose is specified, each argument is numbered on a new line.  If -o "
+        "or -omit is specified, the first two arguments (e.g. the two flags) are omitted "
+        "from the output. The omit flag has no effect if verbose mode is not specified."));
 
     cmdList.push_back(new ConsoleCommand("fpsmax", fpsmax,
-        "Sets the maximum framerate of the rendering engine. Usage:\n \n"
+        "Sets the maximum framerate of the rendering engine. Usage:\n\n"
         "    fpsmax 60    Sets the maximum framerate to 60 frames per second (FPS).\n"
-        "    fpsmax 0     Disables the engine framerate limiter (may cause high CPU usage).\n \n"
+        "    fpsmax 0     Disables the engine framerate limiter (may cause high CPU usage).\n\n"
         "Call this command without any arguments to display the current FPS limit."));
 
     cmdList.push_back(new ConsoleCommand("help", help,
         "Used to obtain help information about a particular command, or display a quick "
-        "help guide. Usage:\n \n"
+        "help guide. Usage:\n\n"
         "    help [cmd]    Where [cmd] is the name of a particular command (e.g. help "
-        "list).\n \nIf [cmd] is omitted, the quick help guide is shown."));
+        "list).\n\nIf [cmd] is omitted, the quick help guide is shown."));
 
     cmdList.push_back(new ConsoleCommand("list", list,
-        "Used to list the available console commands or command aliases.  Usage:\n \n"
+        "Used to list the available console commands or command aliases.  Usage:\n\n"
         "    list arg         Where arg is one of the following\n"
         "    -c, -commands    Lists all available console commands.\n"
         "    -a, -aliases     Lists all aliases mapped to other console commands."));
 
     cmdList.push_back(new ConsoleCommand("loadanim", loadanim,
-        "Loads an animation from a file in the /animations directory.  Usage:\n \n"
-        "    loadanim filename [arg1, arg2, arg3, ...]\n \n"
+        "Loads an animation from a file in the /animations directory.  Usage:\n\n"
+        "    loadanim filename [arg1, arg2, arg3, ...]\n\n"
         "Where filename is the name of the animation file (including extension), and the "
         "remaining arguments are any arguments required by the animation (extra arguments "
-        "are ignored, but passing too few may result in an error).  Examples:\n \n"
+        "are ignored, but passing too few may result in an error).  Examples:\n\n"
         "    loadanim sendplane.lua    Loads the sendplane.lua animation.\n"
         "    loadanim rain.lua 4       Loads the rain.lua animation with 4 rain drops."));
 
     cmdList.push_back(new ConsoleCommand("loadscript", loadscript,
-        "Loads a script from a file. Usage:\n \n"
-        "    loadscript filename\n \n"
+        "Loads a script from a file. Usage:\n\n"
+        "    loadscript filename\n\n"
         "Where filename is the name of the script (including extension, usually .tcs)."));
 
     cmdList.push_back(new ConsoleCommand("quality", quality,
         "Changes the polygon count of the individual LED spheres making up the cube. "
         "Lowering the quality may result in higher performance at the cost of visual "
-        "appearance. Usage:\n \n"
+        "appearance. Usage:\n\n"
         "    quality q    Where q is an integer from 1 (lowest quality) to 6 (highest)."
-        "\n \nThe default quality is 4."));
+        "\n\nThe default quality is 4."));
     
     cmdList.push_back(new ConsoleCommand("quit", quit,
         "Quits/closes Triclysm immediately.  Any passed arguments are ignored."));
 
     cmdList.push_back(new ConsoleCommand("resolution", resolution,
-        "Sets the screen resolution of the program.  Usage:\n \n"
+        "Sets the screen resolution of the program.  Usage:\n\n"
         "    resolution width height    Where width and height are the new resolutions "
-        "(positive integer values) for the screen.\n \n"
+        "(positive integer values) for the screen.\n\n"
         "If the screen mode could not be set, the screen is set back to the old one."));
 
     cmdList.push_back(new ConsoleCommand("runanim", runanim,
-        "Toggles or sets the animation from updating.  Usage:\n \n"
-        "    runanim [bool]    Where [bool] is an optional boolean parameter.\n \n"
+        "Toggles or sets the animation from updating.  Usage:\n\n"
+        "    runanim [bool]    Where [bool] is an optional boolean parameter.\n\n"
         "If [bool] evaluates to true, the animation will begin updating.  If [bool] "
         "evaluates to false, the animation will stop.  If [bool] is omitted, the running "
         "state of the animation is toggled."));
 
+    cmdList.push_back(new ConsoleCommand("showcube", showcube,
+        "Toggles or sets the LED cube from being rendered.  Usage:\n\n"
+        "    showcube [bool]    Where [bool] is an optional boolean parameter.\n\n"
+        "If [bool] evaluates to true, the cube will be rendered.  If [bool] evaluates to "
+        "false, the cube will not be rendered.  If [bool] is omitted, the cube rendering "
+        "state is toggled."));
+
     cmdList.push_back(new ConsoleCommand("showfps", showfps,
-        "Toggles or sets the FPS counter from being displayed.  Usage:\n \n"
-        "    showfps [bool]    Where [bool] is an optional boolean parameter.\n \n"
+        "Toggles or sets the FPS counter from being displayed.  Usage:\n\n"
+        "    showfps [bool]    Where [bool] is an optional boolean parameter.\n\n"
         "If [bool] evaluates to true, the FPS counter is shown.  If [bool] evaluates to "
         "false, the FPS counter will not be drawn.  If [bool] is omitted, the state of "
         "the FPS counter is toggled."));
 
     cmdList.push_back(new ConsoleCommand("tickrate", tickrate,
-        "Sets the current tickrate for running animations (or updates per second). Usage:\n \n"
-        "    tickrate [newrate]    Where [newrate] is an optional integer parameter.\n \n"
+        "Sets the current tickrate for running animations (or updates per second). Usage:\n\n"
+        "    tickrate [newrate]    Where [newrate] is an optional integer parameter.\n\n"
         "If omitted, the current tickrate is displayed.  If set, [newrate] must be a valid "
         "integer between 1 and 1000."));
     

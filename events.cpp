@@ -297,10 +297,12 @@ void HandleConsoleKey(SDLKey ksym, SDLMod kmod)
 ///
 void HandleNormalKey(SDLKey ksym, SDLMod kmod)
 {
+    // First, we need to determine which key modifiers (if any) were held down.
     bool shiftDown = kmod & KMOD_SHIFT,
          ctrlDown  = kmod & KMOD_CTRL,
          altDown   = kmod & KMOD_ALT;
-
+    // Next, we need to go through the key bind list, and determine if we need to execute
+    // any commands which are bound to those particular keys.
     std::list<KeyBind*>::iterator kbIt;
     for (kbIt = kbList.begin(); kbIt != kbList.end(); kbIt++)
     {
@@ -311,7 +313,7 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             break;
         }
     }
-    
+    // Finally, we can go through any remaining "special" keys (e.g. arrow keys).
     switch (ksym)
     {
         case SDLK_UP:
@@ -396,21 +398,18 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             viewRotX = 30.0f;
             viewRotY = 20.0f;
             break;
-
-/*          brek
-        case SDLK_a:
-            //int args[1] = { TC_XY_PLANE };
-            //SetAnim(new TCAnimLua(cubeSize, "tcal/sendplane.lua", 0, args));
-            SetAnim(LuaAnimLoader("animations/sendplane.lua", 0, NULL));
-            break;*/
-
-        case SDLK_a:
-            CallCommand("loadanim sendplane.lua");
-            break;
     }
 }
 
 
+///
+/// \brief Add Key Bind
+///
+/// Binds the specified command string to the passed key, including any required modifiers.
+///
+/// \returns If the specified key was previously bound to a command, this function returns
+///          true (i.e. the bind ovewrote an existing one).  Otherwise, this returns false.
+///
 bool AddKeyBind(SDLKey const& keySym, bool const& shift, bool const& ctrl,
                 bool const& alt, std::string const& commandStr)
 {
