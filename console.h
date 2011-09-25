@@ -33,6 +33,7 @@
 #ifndef TC_CONSOLE_
 #define TC_CONSOLE_
 
+#include "SDL.h"
 #include <string>
 #include <vector>
 #include <list>
@@ -59,6 +60,10 @@ extern std::list<std::string>     outputList,       // The console output list.
                                   historyList;      // The console history list.
 
 extern std::list<std::string>::iterator outputIt;   // The output list iterator.
+
+extern unsigned int waitMode,                  // The current wait mode (0 to run).
+                    waitAmount,                // The current wait amount.
+                    waitInitAmount;            // The initial wait condition value.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -97,6 +102,9 @@ void MoveCursor(bool left);
 void InputBackspace();
 void InputAddChar(char c);
 
+void RunCommandQueue();
+void CheckWaitMode();
+void SetWaitMode(unsigned int mode, unsigned int delay);
 
 
 

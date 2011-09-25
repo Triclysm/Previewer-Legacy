@@ -192,7 +192,8 @@ void EventLoop()
                 
             }
         }
-        RenderScene();  // Finally, if all our events were handled, render the scene.
+        RunCommandQueue();  // Next, we run any queued console commands.
+        RenderScene();      // Finally, we can render the scene.
     }
 }
 

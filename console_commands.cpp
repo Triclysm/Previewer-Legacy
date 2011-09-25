@@ -947,6 +947,74 @@ void tickrate(vectStr const& argv)
     }
 }
 
+void wait(vectStr const& argv)
+{
+    if (argv.size() == 2)
+    {
+        unsigned int currMode = 0;
+        // First, we parse the current wait mode.
+        if (argv[0] == "-ms" || argv[0] == "-milliseconds")
+        {
+            currMode = 1;
+        }
+        else if (argv[0] == "-s" || argv[0] == "-seconds")
+        {
+            currMode = 2;
+        }
+        else if (argv[0] == "-t" || argv[0] == "-ticks")
+        {
+            currMode = 3;
+        }
+        else if (argv[0] == "-i" || argv[0] == "-iterations")
+        {
+            if (!nullAnim)  // So long as we have a non-blank animation...
+            {
+                currMode = 4;
+            }
+            else            // Else, if we do have a blank animation...
+            {
+                WriteOutput("Error - you cannot use iteration mode without an "
+                    "animation loaded.");
+                SetWaitMode(0, 0);
+                return;
+            }
+        }
+        else
+        {
+            WriteOutput("Error - mode '" + argv[0] + "' is unrecognized.");
+            SetWaitMode(0, 0);
+            return;
+        }
+        // We also do a check to see if the animation is paused, and we are waiting
+        // for a certain iteration or tick amount.
+        if ((currMode == 3 || currMode == 4) && !runAnim)
+        {
+            WriteOutput("Error - you cannot wait for a tick or iteration value "
+                "while the animation is not being updated.");
+            SetWaitMode(0, 0);
+            return;
+        }
+        // If we get here, then we can parse the second argument as the delay value.
+        int currDelay;
+        // So, if we couldn't convert the value, or the delay value was negative...
+        if (!StringToInt(argv[1], currDelay) || currDelay <= 0)
+        {
+            // Write the appropriate error to the console, and reset the wait mode/amount.
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            SetWaitMode(0, 0);
+        }
+        // Otherwise, if we got a valid delay value, we simply set the wait mode.
+        else
+        {
+            SetWaitMode(currMode, currDelay);
+        }
+    }
+    else
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 2);
+    }
+}
+
 
 ///
 /// \brief Register Commands
@@ -1079,6 +1147,19 @@ void RegisterCommands()
         "    tickrate [newrate]    Where [newrate] is an optional integer parameter.\n\n"
         "If omitted, the current tickrate is displayed.  If set, [newrate] must be a valid "
         "integer between 1 and 1000."));
+
+    cmdList.push_back(new ConsoleCommand("wait", wait,
+        "Delays execution of any further console commands by the set amount.  Usage:\n\n"
+        "    wait mode delay\n\n"
+        "Where mode is one of the following flags (specifying the units of delay):\n"
+        "    -ms, -milliseconds    The value of delay is in milliseconds.\n"
+        "    -s,  -seconds         The value of delay is in seconds.\n"
+        "    -t,  -ticks           The value of delay is in ticks.\n"
+        "    -i,  -iterations      The value of delay is in iterations.\n"
+        "And where delay is a positive integer representing the delay value based on the "
+        "passed mode flag.\n\nUse caution when specifying a delay value in iterations. If "
+        "the current animation does not increment the internal iteration counter, the "
+        "wait condition may never bet met, and you may have to restart the program."));
     
     // Finally, we make sure the command and alias lists are sorted (alphabetically).
     cmdList.sort(cmpConsoleCmd);

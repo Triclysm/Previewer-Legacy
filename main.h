@@ -58,7 +58,8 @@ extern TCAnim       *currAnim;      // Pointer to the current animation.
 extern bool          showFps,       // True to render the FPS counter, false to hide it.
                      showCube,      // True to render the actual cube, false to hide it.
                      runAnim,       // True to update the current animation, false to stop.
-                     runProgram;    // Set to false to quit the program.
+                     runProgram,    // Set to false to quit the program.
+                     nullAnim;      // Set to true if the current animation is blank.
 
 extern byte          cubeSize[3];   // The current size of the cube.
 
