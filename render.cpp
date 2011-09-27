@@ -62,35 +62,34 @@ GLclampf colConInputBg[4] = {0.2f, 0.2f, 0.2f, 0.5f},   ///< Input background co
          colStrConsOut[3] = {0.90f, 0.90f, 0.90f};      ///< Console output text colour.
 
 // LED-sphere specific parameters (can also be used to control quality/performance).
-GLuint   dlistLed;          ///< The LED display list.
-GLfloat  ledSpacing = 0.5f, ///< The space between LEDs.
-         sphRadius  = 0.1f; ///< The radius of the LED spheres.
-GLint    sphSlices  = 12,   ///< Number of slices used when creating the sphere.
-         sphStacks  = 12;   ///< Number of stacks used when creating the sphere.
-GLfloat  ledStartPos[3];    ///< Array holding the starting position to draw the LEDs at.
+GLuint   dlistLed;           ///< The LED display list.
+GLfloat  ledSpacing = 0.5f,  ///< The space between LEDs.
+         sphRadius  = 0.1f;  ///< The radius of the LED spheres.
+GLint    sphSlices  = 12,    ///< Number of slices used when creating the sphere.
+         sphStacks  = 12;    ///< Number of stacks used when creating the sphere.
+GLfloat  ledStartPos[3];     ///< Array holding the starting position to draw the LEDs at.
 
-// Axis specific parameters (can also be used to control quality/performance).
+// Axis specific parameters (can be changed on-the-fly).
 GLuint   dlistAxis;          ///< The axis display list.
-GLdouble axisLength  = 3.0f; ///< How long the axis cylinder is.
-GLfloat  axisRadius  = 0.1f; ///< The radius of the axix cylinder.
-GLint    axisSlices  = 12,   ///< Number of slices used when creating the cylinder.
-         axisStacks  = 12;   ///< Number of stacks used when creating the cylinder.
+GLfloat  axisLength[3],      ///< How long the axis cylinder is in each dimension.
+         axisRadius =        ///< The radius of each axis cylinder.
+            sphRadius / 2.0f;
 
 // Camera-specific variables (these are applied to the cube, not the viewport).
-GLfloat  viewRotX =  30.0f, ///< The current horizontal rotation, about the y-axis.
-         viewRotY =  20.0f, ///< The current vertical   rotation, about the x-axis.
-         viewPosZ = -40.0f; ///< The current z-position of the camera.
+GLfloat  viewRotX =  30.0f,  ///< The current horizontal rotation, about the y-axis.
+         viewRotY =  20.0f,  ///< The current vertical   rotation, about the x-axis.
+         viewPosZ = -40.0f;  ///< The current z-position of the camera.
 
 // Font specific variables
-GLuint   fontTex;           ///< Texture reference to the console font.
-GLfloat  relCharH,          ///< The relative height of a single character on the screen.
-         relCharW;          ///< The relative width  of a single character on the screen.
-size_t   totalLines,        ///< The total amount of lines that can fit on the screen.
-         charsPerLine;      ///< The number of characters that can fit across the screen.
+GLuint   fontTex;            ///< Texture reference to the console font.
+GLfloat  relCharH,           ///< The relative height of a single character on the screen.
+         relCharW;           ///< The relative width  of a single character on the screen.
+size_t   totalLines,         ///< The total amount of lines that can fit on the screen.
+         charsPerLine;       ///< The number of characters that can fit across the screen.
 
-Uint16   fpsMax,            ///< The maximum framerate to render at (0 to disable).
-         fpsRateCap;        ///< The current delay value (0 to disable).
-Uint32   fpsCurrTicks;      ///< Holds the current number of ticks for the FPS counter.
+Uint16   fpsMax,             ///< The maximum framerate to render at (0 to disable).
+         fpsRateCap;         ///< The current delay value (0 to disable).
+Uint32   fpsCurrTicks;       ///< Holds the current number of ticks for the FPS counter.
 
 const Uint32 cursorFlashRate = 600; ///< Rate at which the console cursor is flashed.
 
@@ -150,8 +149,8 @@ void InitDisplayLists()
     glBegin(GL_LINE_LOOP);                          // Now, we start drawing.
     tmpquad = gluNewQuadric();                      // After setting up a new quadratic,
     gluQuadricDrawStyle(tmpquad, GLU_FILL);         // we set the quad's draw style.
-    gluCylinder(tmpquad,    axisRadius, axisRadius, // We can now create a cylinder,
-                axisLength, axisSlices, axisStacks);
+    gluCylinder(tmpquad,   1.0l, 1.0l, 1.0l,        // We can now create a cylinder,
+                sphSlices, sphStacks * 2);
     gluDeleteQuadric(tmpquad);                      // delete the quad,
     glEnd();                                        // and end drawing.
     glEndList();                                    // Finally, we exit display list mode.
@@ -385,16 +384,84 @@ void FontModeEnd()
 ///
 void DrawAxis()
 {
-    /*
-    glBlendFunc(GL_ONE, GL_ONE);            // First, we change the alpha blend function.
-    glEnable(GL_TEXTURE_2D);                // Then, we enable 2D texturing,
-    glBindTexture(GL_TEXTURE_2D, fontTex);  // and bind the font texture.
-    glBegin(GL_QUADS);                      // Finally, we begin quad vertices mode.
-    //...
-    glEnd();                                            // We end the quad vertices mode,
-    glDisable(GL_TEXTURE_2D);                           // disable 2D texturing mode,
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // and restore the alpha blending.
-    */
+    glPushMatrix();
+    glTranslatef(ledStartPos[1], ledStartPos[2], ledStartPos[0]);
+    
+    glColor4fv(colAxisX);
+    glPushMatrix();
+    glScalef(axisRadius, axisRadius, axisLength[0]);
+    glCallList(dlistAxis);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.0f, -0.125f, axisLength[0] + 0.5f);
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(0.25f, 0.25f, 1.0f);
+    glBegin(GL_QUADS);
+        glVertex3f(0.00f, 1.00f, 0.0f);
+        glVertex3f(0.20f, 1.00f, 0.0f);
+        glVertex3f(1.00f, 0.00f, 0.0f);
+        glVertex3f(0.80f, 0.00f, 0.0f);
+        
+        glVertex3f(1.00f, 1.00f, 0.0f);
+        glVertex3f(0.80f, 1.00f, 0.0f);
+        glVertex3f(0.00f, 0.00f, 0.0f);
+        glVertex3f(0.20f, 0.00f, 0.0f);
+    glEnd();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glPushMatrix();
+    glScalef(axisRadius, axisRadius, axisLength[1]);
+    glColor4fv(colAxisY);
+    glCallList(dlistAxis);
+    glPopMatrix();
+    glTranslatef(0.0f, -0.125f, axisLength[1] + 0.5f);
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(0.25f, 0.25f, 1.0f);
+    glBegin(GL_QUADS);
+        glVertex3f(0.00f, 1.00f, 0.0f);
+        glVertex3f(0.20f, 1.00f, 0.0f);
+        glVertex3f(1.00f, 0.00f, 0.0f);
+        glVertex3f(0.80f, 0.00f, 0.0f);
+        
+        glVertex3f(1.00f, 1.00f, 0.0f);
+        glVertex3f(0.80f, 1.00f, 0.0f);
+        glVertex3f(0.50f, 0.50f, 0.0f);
+        glVertex3f(0.20f, 0.50f, 0.0f);
+    glEnd();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glPushMatrix();
+    glScalef(axisRadius, axisRadius, axisLength[2]);
+    glColor4fv(colAxisZ);
+    glCallList(dlistAxis);
+    glPopMatrix();
+    glTranslatef(-0.05f, -0.125f, axisLength[2] + 0.25f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(0.25f, 0.25f, 1.0f);
+    glBegin(GL_QUADS);
+        glVertex3f(0.00f, 1.00f, 0.0f);
+        glVertex3f(1.00f, 1.00f, 0.0f);
+        glVertex3f(1.00f, 0.80f, 0.0f);
+        glVertex3f(0.00f, 0.80f, 0.0f);
+        
+        glVertex3f(1.00f, 1.00f, 0.0f);
+        glVertex3f(0.80f, 1.00f, 0.0f);
+        glVertex3f(0.00f, 0.00f, 0.0f);
+        glVertex3f(0.20f, 0.00f, 0.0f);
+
+        glVertex3f(0.00f, 0.00f, 0.0f);
+        glVertex3f(1.00f, 0.00f, 0.0f);
+        glVertex3f(1.00f, 0.20f, 0.0f);
+        glVertex3f(0.00f, 0.20f, 0.0f);
+    glEnd();
+    glPopMatrix();
+
+    glPopMatrix();
 }
 
 
