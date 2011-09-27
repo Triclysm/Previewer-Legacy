@@ -20,245 +20,22 @@
 ///
 /// \file  console_commands.cpp
 /// \brief This file contains the registration, implementation, and control of flow for
-///        the Triclysm Previewer command console.  Any commands that are added should
+///        the Triclysm command console.  Any command functions that are added should
 ///        also be added to the RegisterCommands function at the bottom of this file.
 ///
 
 #include <string>
-#include <cctype>
 #include <sstream>
 #include <vector>
 #include "console.h"
 #include "events.h"
+#include "format_conversion.h"
 #include "render.h"
 #include "main.h"
 #include "TCAnim.h"
 #include "TCAnimLua.h"
 
 typedef std::vector<std::string> vectStr;
-
-///
-/// \brief String Remove Spaces
-///
-/// Modifies the passed string by removing each space character from the string.
-///
-/// \param toConvert The string to remove the spaces from.
-/// \param spaceChar The character to remove from the string (' ' by default).
-///
-void StringRemoveSpaces(std::string &toRemove, char spaceChar = ' ')
-{
-    size_t spacePos = toRemove.find(spaceChar);
-    while (spacePos != std::string::npos)
-    {
-        toRemove.erase(spacePos, 1);
-        spacePos = toRemove.find(spaceChar);
-    }
-}
-
-
-///
-/// \brief String To Lowercase
-///
-/// Modifies the passed string and converts each character to its lowercase equivalent.
-///
-/// \param toConvert The string to convert to lowercase.
-///
-void StringToLowercase(std::string &toLower)
-{
-    for (size_t i = 0; i < toLower.length(); i++)
-    {
-        toLower[i] = std::tolower(toLower[i]);
-    }
-}
-
-
-///
-/// \brief String To Uppercase
-///
-/// Modifies the passed string and converts each character to its uppercase equivalent.
-///
-/// \param toConvert The string to convert to uppercase.
-///
-void StringToUppercase(std::string &toUpper)
-{
-    for (size_t i = 0; i < toUpper.length(); i++)
-    {
-        toUpper[i] = std::toupper(toUpper[i]);
-    }
-}
-
-
-///
-/// \brief String To Integer
-///
-/// Attempts to convert the passed string into an integer.
-///
-/// \param toConvert The string representing the integer value to convert.
-/// \param result    The variable to store the result in (if applicable).
-///
-/// \returns True if the conversion was successful, false otherwise.
-/// \remarks If this function returns false, the value of the result is undefined, and
-///          should not be used.
-///
-bool StringToInt(std::string const& toConvert, int &result)
-{
-    std::stringstream ssToConv(toConvert);
-    return (bool)(ssToConv >> result);
-}
-
-
-///
-/// \brief String To Boolean
-///
-/// Attempts to convert the passed string into a boolean.  Valid string values are "true",
-/// "false", or any number which evaluates to 0 or 1.
-/// 
-/// \param toConvert The string representing the boolean value to convert.
-/// \param result    The variable to store the result in (if applicable).
-///
-/// \returns True if the conversion was successful, false otherwise.
-/// \remarks If this function returns false, the value of the result is undefined, and
-///          should not be used.
-///
-bool StringToBool(std::string const& toConvert, bool &result)
-{
-    // First, we trim any existing spaces from the string, and convert it to lowercase.
-    std::string lcStr(toConvert);
-    StringRemoveSpaces(lcStr);
-    StringToLowercase(lcStr);
-    // Does the remaining string match "true" or "false"?
-    if (lcStr == "true")
-    {
-        result = true;
-        return true;
-    }
-    if (lcStr == "false")
-    {
-        result = false;
-        return true;
-    }
-    // Finally, try to convert the remaining string to a number.
-    std::stringstream ssToConv(lcStr);
-    int conVal;
-    if (ssToConv >> conVal)
-    {
-        if (conVal == 1)
-        {
-            result = true;
-            return true;
-        }
-        if (conVal == 0)
-        {
-            result = false;
-            return true;
-        }
-    }
-    // Lastly, if we get here, no acceptable conversion was found, so return false.
-    return false;
-}
-
-
-///
-/// \brief String To Triclysm Constant
-///
-/// Attempts to convert the passed string into a Triclysm constant value (e.g. "X_AXIS"
-/// should be evaluated to what is #defined by the macro TC_X_AXIS).
-///
-/// \param toConvert The string representing the constant value to convert.
-/// \param result    The variable to store the result in (if applicable).
-///
-/// \returns True if the conversion was successful, false otherwise.
-/// \remarks If this function returns false, the value of the result is undefined, and
-///          should not be used.
-///
-bool StringToConst(std::string const& toConvert, int &result)
-{
-    std::string toConv(toConvert);
-    StringToUppercase(toConv);      // First, we convert the passed string to uppercase,
-    StringRemoveSpaces(toConv);     // and remove all spaces from it.
-    // So, if the length of the remaining string matches ?_AXIS...
-    if (toConv.length() == 6)
-    {
-        if (toConv == "X_AXIS")
-        {
-            result = TC_X_AXIS;
-            return true;
-        }
-        if (toConv == "Y_AXIS")
-        {
-            result = TC_Y_AXIS;
-            return true;
-        }
-        if (toConv == "Z_AXIS")
-        {
-            result = TC_Z_AXIS;
-            return true;
-        }
-    }
-    // Else, if the length of the remaining string matches ??_PLANE...
-    else if (toConv.length() == 8)
-    {
-        if (toConv == "XY_PLANE")
-        {
-            result = TC_XY_PLANE;
-            return true;
-        }
-        if (toConv == "YZ_PLANE")
-        {
-            result = TC_YZ_PLANE;
-            return true;
-        }
-        if (toConv == "ZX_PLANE")
-        {
-            result = TC_ZX_PLANE;
-            return true;
-        }
-    }
-    // If the control gets here, we didn't find a constant, so we return false.
-    return false;
-}
-
-
-///
-/// \brief String To Key Symbol
-///
-/// Attempts to convert the passed string into a SDL Key Symbol (SDLKey).
-///
-/// \param toConvert The string representing the key symbol.
-/// \param result    The variable to store the result in (if applicable).
-///
-/// \returns True if the conversion was successful, false otherwise.
-/// \remarks If this function returns false, the value of the result is undefined, and
-///          should not be used.
-///
-bool StringToKeySym(std::string const& toConvert, SDLKey &result)
-{
-    std::string toConv(toConvert);
-    StringToLowercase(toConv);
-    if (toConv.length() == 1)   // If we have a single character...
-    {
-        if (toConv[0] >= 'a' && toConv[0] <= 'z')
-        {
-            result = (SDLKey)(SDLK_a + toConv[0] - 'a');
-            return true;
-        }
-        else if (toConv[0] >= '0' && toConv[0] <= '9')
-        {
-            result = (SDLKey)(SDLK_0 + toConv[0] - '0');
-            return true;
-        }
-    }
-    else                        // Else, if we have a word...
-    {
-        if (toConv == "space")
-        {
-            result = SDLK_SPACE;
-            return true;
-        }
-    }
-    // If we get here, no acceptable conversion was found, so we return false.
-    return false;
-}
 
 
 namespace TC_Console_Error
@@ -281,6 +58,7 @@ namespace TC_Console_Error
     }
 }
 
+
 namespace TC_Console_Commands
 {
 
@@ -288,11 +66,6 @@ void bind(vectStr const& argv)
 {
     switch (argv.size())
     {
-        case 0:         // No arguments - list all key binds.
-            WriteOutput("List of key binds:");
-            WriteOutput("Not complete yet.");
-            break;
-        
         case 1:         // One argument - output what they key is bound to.
         {
             SDLKey keySymbol = (SDLKey)0;
@@ -310,43 +83,11 @@ void bind(vectStr const& argv)
                             WriteOutput("The key '" + argv[0] + "' is bound to:");
                             found = true;
                         }
-                        std::stringstream ssResult("  ");
-                        bool addPlus = false;
-                        if ((*kbIt)->mCtrl)
+                        std::string strKey;
+                        if (KeyBindToString((*kbIt), strKey))
                         {
-                            ssResult << "Ctrl";
-                            addPlus = true;
+                            WriteOutput("  " + strKey + " = " + (*kbIt)->cmdStr);
                         }
-                        if ((*kbIt)->mAlt)
-                        {
-                            if (addPlus)
-                            {
-                                ssResult << "+";
-                            }
-                            else
-                            {
-                                addPlus = true;
-                            }
-                            ssResult << "Alt";
-                        }
-                        if ((*kbIt)->mShift)
-                        {
-                            if (addPlus)
-                            {
-                                ssResult << "+";
-                            }
-                            else
-                            {
-                                addPlus = true;
-                            }
-                            ssResult << "Shift";
-                        }
-                        if (addPlus)
-                        {
-                            ssResult << "+";
-                        }
-                        ssResult << argv[0] << " = " << (*kbIt)->cmdStr;
-                        WriteOutput(ssResult.str());
                     }
                 }
             }
@@ -417,7 +158,7 @@ void bind(vectStr const& argv)
         }
 
         default:
-            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            TC_Console_Error::WrongArgCount(argv.size(), 5);
             break;
     }
 }
@@ -705,6 +446,19 @@ void list(vectStr const& argv)
                 WriteOutput((*aliasIt)->alias + " : " + (*aliasIt)->name);
             }
         }
+        else if (argv[0] == "-b" || argv[0] == "-binds")
+        {
+            WriteOutput("The following is a list of all keys bound to console commands:");
+            std::list<KeyBind*>::iterator kbIt;
+            for (kbIt = kbList.begin(); kbIt != kbList.end(); kbIt++)
+            {
+                std::string keyStr;
+                if (KeyBindToString((*kbIt), keyStr))
+                {
+                    WriteOutput("  " + keyStr + " = " + (*kbIt)->cmdStr);
+                }
+            }
+        }
         else
         {
             WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
@@ -981,6 +735,37 @@ void showfps(vectStr const& argv)
     }
 }
 
+void tick(vectStr const& argv)
+{
+    switch (argv.size())
+    {
+        case 0:
+            LockAnimMutex();
+            currAnim->Tick();
+            UnlockAnimMutex();
+            break;
+        case 1:
+            int tmpResult;
+            if (StringToInt(argv[0], tmpResult) || tmpResult > 0)
+            {
+                LockAnimMutex();
+                for (int i = 0; i < tmpResult; i++)
+                {
+                    currAnim->Tick();
+                }
+                UnlockAnimMutex();
+            }
+            else
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            break;
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+    }
+}
+
 void tickrate(vectStr const& argv)
 {
     if (argv.size() == 1)
@@ -1090,7 +875,9 @@ void RegisterCommands()
         "              -c, -ctrl   The Ctrl key.\n"
         "              -s, -shift  The Shift key.\n"       
         "    key     Clears the console history.\n"
-        "    cmd     The command to be bound to the key (use quotes for arguments)."));
+        "    cmd     The command to be bound to the key (use quotes for arguments).\n\n"
+        "To unbind a key, see the unbind command. To list all key binds, use the list "
+        "command."));
 
     cmdList.push_back(new ConsoleCommand("clear", clear,
         "Clears the console output (default) or the console history. Usage:\n\n"
@@ -1206,6 +993,12 @@ void RegisterCommands()
         "If [bool] evaluates to true, the FPS counter is shown.  If [bool] evaluates to "
         "false, the FPS counter will not be drawn.  If [bool] is omitted, the state of "
         "the FPS counter is toggled."));
+        
+    cmdList.push_back(new ConsoleCommand("tick", tick,
+        "Advances the animation state by the set number of ticks.  Usage:\n\n"
+        "    tick [amount]    Where [amount] is an optional integer parameter.\n\n"
+        "If [amount] is omitted, the animation state advances by one tick."));
+        
 
     cmdList.push_back(new ConsoleCommand("tickrate", tickrate,
         "Sets the current tickrate for running animations (or updates per second). Usage:\n\n"

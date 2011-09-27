@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     InitGL();                   // Now that we have a screen, we can initialize the OpenGL.
 
     // If we get here, all subsystems have been initialized, so we can set Triclysm to run.
-    runAnim = true;             // After we set both runAnim and runProgram to true,
+    runAnim    = true;          // After we set both runAnim and runProgram to true,
     runProgram = true;          // we enter the main event loop (defined in events.h).
     // The last thing we need to do is start the animation update thread (we cannot
     // continue without it). This thread calls currAnim->Update() at the current tickrate.
