@@ -51,6 +51,10 @@ GLclampf colClear[4]   = {0.15f, 0.15f, 0.15f, 1.00f},  ///< The clear/backgroun
          colLedOn[4]   = {0.20f, 0.20f, 1.00f, 1.00f},  ///< Colour of an LED that is on.
          colLedOff[4]  = {0.00f, 0.00f, 0.00f, 0.50f};  ///< Colour of an LED that is off.
 
+GLclampf colAxisX[4]   = {0.75f, 0.00f, 0.00f, 1.00f},  ///< Colour of the x-axis cylinder.
+         colAxisY[4]   = {0.00f, 0.75f, 0.00f, 1.00f},  ///< Colour of the y-axis cylinder.
+         colAxisZ[4]   = {0.00f, 0.00f, 0.75f, 1.00f};  ///< Colour of the z-axis cylinder.
+
 GLclampf colConInputBg[4] = {0.2f, 0.2f, 0.2f, 0.5f},   ///< Input background colour.
          colConBg[4]      = {0.1f, 0.1f, 0.1f, 0.5f},   ///< Console background colour.
          colStrFps[3]     = {0.90f, 0.05f, 0.05f},      ///< FPS counter text colour.
@@ -64,6 +68,13 @@ GLfloat  ledSpacing = 0.5f, ///< The space between LEDs.
 GLint    sphSlices  = 12,   ///< Number of slices used when creating the sphere.
          sphStacks  = 12;   ///< Number of stacks used when creating the sphere.
 GLfloat  ledStartPos[3];    ///< Array holding the starting position to draw the LEDs at.
+
+// Axis specific parameters (can also be used to control quality/performance).
+GLuint   dlistAxis;          ///< The axis display list.
+GLdouble axisLength  = 3.0f; ///< How long the axis cylinder is.
+GLfloat  axisRadius  = 0.1f; ///< The radius of the axix cylinder.
+GLint    axisSlices  = 12,   ///< Number of slices used when creating the cylinder.
+         axisStacks  = 12;   ///< Number of stacks used when creating the cylinder.
 
 // Camera-specific variables (these are applied to the cube, not the viewport).
 GLfloat  viewRotX =  30.0f, ///< The current horizontal rotation, about the y-axis.
@@ -101,7 +112,8 @@ void InitGL()
     glEnable(GL_BLEND);             // Next, we enable blending and set the blending mode.
     glEnable(GL_DEPTH);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    dlistLed = glGenLists(1);       // Next, we create the LED display list,
+    dlistLed  = glGenLists(1);      // Next, we create the LED display list,
+    dlistAxis = glGenLists(1);      // the axis display list,
     InitDisplayLists();             // and generate/initialize the new list.
     InitFont();                     // We also prepare the font for drawing.
     // We also set the clear colour of the scene to the background colour.
@@ -116,19 +128,30 @@ void InitGL()
 ///
 /// Initializes (or replaces) the LED display list with the proper models (including the
 /// sphere quality).  The sphere parameters are set by \ref sphRadius, \ref sphSlices,
-/// and \ref sphStacks.
+/// and \ref sphStacks.  This also initializes the axis display lists.
 ///
-/// \remarks If any of the sphere parameters are changed, this function must be called in
-///          order for those changes to take effect.
+/// \remarks If any of the sphere or axis parameters are changed, this function must be 
+///          called in order for those changes to take effect.
 /// \see     dlistLed
 ///
 void InitDisplayLists()
 {
+    // First, we compile the LED display list.
     glNewList(dlistLed, GL_COMPILE);                // First, we create/replace the list.
     glBegin(GL_LINE_LOOP);                          // Now, we start drawing.
     GLUquadricObj* tmpquad = gluNewQuadric();       // First, we setup a new quadratic.
     gluQuadricDrawStyle(tmpquad, GLU_FILL);         // Then, we set the quad's draw style.
     gluSphere(tmpquad, sphRadius, sphSlices, sphStacks); // We then create a sphere,
+    gluDeleteQuadric(tmpquad);                      // delete the quad,
+    glEnd();                                        // and end drawing.
+    glEndList();                                    // Finally, we exit display list mode.
+    // Next, we compile the axis display list.
+    glNewList(dlistAxis, GL_COMPILE);               // First, we create/replace the list.
+    glBegin(GL_LINE_LOOP);                          // Now, we start drawing.
+    tmpquad = gluNewQuadric();                      // After setting up a new quadratic,
+    gluQuadricDrawStyle(tmpquad, GLU_FILL);         // we set the quad's draw style.
+    gluCylinder(tmpquad,    axisRadius, axisRadius, // We can now create a cylinder,
+                axisLength, axisSlices, axisStacks);
     gluDeleteQuadric(tmpquad);                      // delete the quad,
     glEnd();                                        // and end drawing.
     glEndList();                                    // Finally, we exit display list mode.
@@ -207,21 +230,29 @@ void RenderScene()
     // Next, we clear the OpenGL scene with the specified clear colour.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Now, we can begin to draw everything on the screen in the proper order.
-    if (showCube)                   // So, if we are supposed to render the cube...
+    
+    if (showAxis || showCube)       // First, do we need to draw any 3D objects?
     {
-        DrawCube();                     // Render the LED cube itself.
+        PerspectiveModeBegin();         // If so, first we enter the perspective mode.
+        if (showAxis) DrawAxis();       // Draw the coordinate axes if needed.
+        if (showCube) DrawCube();       // Draw the LED cube itself, if needed.
+        PerspectiveModeEnd();           // Finally, we leave the perspective mode.
     }
+
     if (showFps || consoleEnabled)  // Next, do we need to show the FPS counter or console?
     {
-        ProjModeBegin();                        // If so, we first enter projection mode.
+        ProjectionModeBegin();                  // If so, we first enter projection mode.
         if (consoleEnabled) DrawConsoleBg();    // Draw the console background if needed.
         FontModeBegin();                        // Next, enter font mode to render text.
         if (consoleEnabled) DrawConsoleText();  // Draw the console text if needed.
         if (showFps)        DrawFpsCounter();   // Draw the FPS counter text if needed.
         FontModeEnd();                          // Finally, we can exit the font and
-        ProjModeEnd();                          // projection modes.
+        ProjectionModeEnd();                    // projection modes.
     }
-    if (fpsRateCap > 0)             // Then, if there is an FPS limit...
+
+    SDL_GL_SwapBuffers();           // Now, we can swap the buffers to display the new image.
+    
+    if (fpsRateCap > 0)             // Finally, if there is an FPS limit...
     {
         static Uint32 fpsLastDraw = SDL_GetTicks(); // The time the scene was last rendered.
         // Delay the rendering engine by the appropriate amount to limit the framerate.
@@ -232,7 +263,40 @@ void RenderScene()
         }
         fpsLastDraw = SDL_GetTicks();               // And lastly, update the last draw time.
     }
-    SDL_GL_SwapBuffers();           // Finally, swap the buffers to display the new image.
+}
+
+
+///
+/// \brief Begin Perspective Mode
+///
+/// Loads an identity matrix onto the modelview matrix stack, and transforms the matrix in
+/// accordance with the current camera position and rotation.  After this is called, 3D
+/// objects can be rendered in the scene.
+///
+/// \remarks This function assumes that the current matrix mode is GL_MODELVIEW, since the
+///          mode is changed to modelview after calling \ref ProjModeEnd.
+/// \see     PerspectiveModeEnd | viewRotX | viewRotY | viewPosZ | ProjModeEnd
+///
+void PerspectiveModeBegin()
+{
+    glPushMatrix();                         // First, we push a new matrix to the stack,
+    glLoadIdentity();                       // and load the identity matrix.
+    glTranslatef(0.0f, 0.0f, viewPosZ);     // Then, we move the viewport on the z-axis,
+    glRotatef(viewRotY, 1.0f, 0.0f, 0.0f);  // and rotate the view based on the current x
+    glRotatef(viewRotX, 0.0f, 1.0f, 0.0f);  // and y rotations.
+}
+
+
+///
+/// \brief End Perspective Mode
+///
+/// Pops any extra matrices pushed onto the modelview matrix stack by PerspectiveModeBegin.
+///
+/// \see PerspectiveModeBegin
+///
+void PerspectiveModeEnd()
+{
+    glPopMatrix();          // All we have to do is pop the transformed modelview matrix.
 }
 
 
@@ -244,9 +308,9 @@ void RenderScene()
 /// corner, and (1,1) is the upper right corner.  Text or 2D graphics can then be drawn
 /// onto the viewport.
 ///
-/// \see ProjModeEnd
+/// \see ProjectionModeEnd
 ///
-void ProjModeBegin()
+void ProjectionModeBegin()
 {
     glMatrixMode(GL_PROJECTION);        // First, we switch to the projection matrix stack,
     glPushMatrix();                     // load a new matrix,
@@ -269,7 +333,7 @@ void ProjModeBegin()
 ///
 /// \see ProjModeBegin
 ///
-void ProjModeEnd()
+void ProjectionModeEnd()
 {
     // We just need to pop the matrices we pushed onto the projection/modelview stacks.
     glMatrixMode(GL_PROJECTION);
@@ -313,21 +377,37 @@ void FontModeEnd()
 
 
 ///
+/// \brief Draw Coordinate Axis
+///
+/// Draws the x, y, and z coordinate axes with the specified axis parameters.
+///
+/// \see dlistAxis | colAxisX | colAxisY | colAxisZ | PerspectiveModeBegin
+///
+void DrawAxis()
+{
+    /*
+    glBlendFunc(GL_ONE, GL_ONE);            // First, we change the alpha blend function.
+    glEnable(GL_TEXTURE_2D);                // Then, we enable 2D texturing,
+    glBindTexture(GL_TEXTURE_2D, fontTex);  // and bind the font texture.
+    glBegin(GL_QUADS);                      // Finally, we begin quad vertices mode.
+    //...
+    glEnd();                                            // We end the quad vertices mode,
+    glDisable(GL_TEXTURE_2D);                           // disable 2D texturing mode,
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // and restore the alpha blending.
+    */
+}
+
+
+///
 /// \brief Draw Cube
 ///
 /// Loops through each voxel in the current animation's cube state, and draws the LEDs
-/// on the screen in the proper state.  This function also rotates and translates the
-/// cube in accordance with the \ref viewRotX, \ref viewRotY, and \ref viewPosZ variables.
+/// on the screen in the proper state.
 ///
-/// \see currAnim | ledStartPos | dlistLedOn | dlistLedOff
+/// \see currAnim | ledStartPos | dlistLed | PerspectiveModeBegin
 ///
 void DrawCube()
 {
-    glPushMatrix();                         // First, we push a new matrix to the stack,
-    glLoadIdentity();                       // and load the identity matrix.
-    glTranslatef(0.0f, 0.0f, viewPosZ);     // Then, we move the viewport on the z-axis,
-    glRotatef(viewRotY, 1.0f, 0.0f, 0.0f);  // and rotate the view based on the current x
-    glRotatef(viewRotX, 0.0f, 1.0f, 0.0f);  // and y rotations.
     // Before drawing the voxels, we need to update the initial drawing position.
     static GLfloat ledCurrPos[3];           // Used to track the current drawing position.
     ledCurrPos[0] = ledStartPos[0];
@@ -437,8 +517,6 @@ void DrawCube()
         default:
             break;
     }
-
-    glPopMatrix();                          // Lastly, we restore the original matrix stack.
 }
 
 

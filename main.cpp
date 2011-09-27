@@ -60,6 +60,7 @@ int         iScrWidth  = 640,   ///< The initial screen width (in pixels).
 TCAnim      *currAnim;      ///< Pointer to the current animation.
 bool         showFps,       ///< True to render the FPS counter, false to hide it.
              showCube,      ///< True to render the actual cube, false to hide it.
+             showAxis,      ///< True to render the coordinate axes, false to hide them.
              runAnim,       ///< True to update the current animation, false otherwise
              runProgram,    ///< True to continue running the program (handling events, 
                             ///  calling the main render loop, etc...), false to quit.

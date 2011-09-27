@@ -1,0 +1,4 @@
+resolution 720 480
+loadanim sendplane.lua
+
+echo "Triclysm configuration file loaded."
