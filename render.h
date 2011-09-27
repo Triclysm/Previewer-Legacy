@@ -88,11 +88,14 @@ void   Resize(int width, int height);
 void   RenderScene();
 void   SetFpsLimit(Uint16 maxFps);
 
-void   ProjModeBegin();
-void   ProjModeEnd();
+void   PerspectiveModeBegin();
+void   PerspectiveModeEnd();
+void   ProjectionModeBegin();
+void   ProjectionModeEnd();
 void   FontModeBegin();
 void   FontModeEnd();
 
+void   DrawAxis();
 void   DrawCube();
 void   DrawChar(char c, GLfloat x, GLfloat y);
 void   DrawConsoleBg();
