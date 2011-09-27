@@ -68,6 +68,8 @@ extern GLfloat  ledSpacing,         // LED-specific parameters, which can be use
 extern GLint    sphSlices,          // the display lists must be re-created for the
                 sphStacks;          // changes to take effect.
 
+extern GLfloat  axisLength[3];
+
 // Camera rotation angles:
 extern GLfloat  viewRotX,           // The current view rotation in the x-dimension.
                 viewRotY,           // The current view rotation in the y-dimension.

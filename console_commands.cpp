@@ -909,6 +909,30 @@ void runanim(vectStr const& argv)
     }
 }
 
+void showaxis(vectStr const& argv)
+{
+    switch (argv.size())
+    {
+        case 0:
+            showAxis = !showAxis;
+            break;
+        case 1:
+            bool tmpResult;
+            if (StringToBool(argv[0], tmpResult))
+            {
+                showAxis = tmpResult;
+            }
+            else
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            break;
+        default:
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+            break;
+    }
+}
+
 void showcube(vectStr const& argv)
 {
     switch (argv.size())
@@ -1161,6 +1185,13 @@ void RegisterCommands()
         "If [bool] evaluates to true, the animation will begin updating.  If [bool] "
         "evaluates to false, the animation will stop.  If [bool] is omitted, the running "
         "state of the animation is toggled."));
+
+    cmdList.push_back(new ConsoleCommand("showaxis", showaxis,
+        "Toggles or sets the three coordinate axes from being rendered.  Usage:\n\n"
+        "    showaxis [bool]    Where [bool] is an optional boolean parameter.\n\n"
+        "If [bool] evaluates to true, the axes will be rendered.  If [bool] evaluates to "
+        "false, the axes will not be rendered.  If [bool] is omitted, the axes rendering "
+        "state is toggled."));
 
     cmdList.push_back(new ConsoleCommand("showcube", showcube,
         "Toggles or sets the LED cube from being rendered.  Usage:\n\n"

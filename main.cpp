@@ -57,16 +57,16 @@ Uint32      tickRate,           ///< The current tick rate (ticks/second).
 int         iScrWidth  = 640,   ///< The initial screen width (in pixels).
             iScrHeight = 480;   ///< The initial screen height (in pixels).
 
-TCAnim      *currAnim;      ///< Pointer to the current animation.
-bool         showFps,       ///< True to render the FPS counter, false to hide it.
-             showCube,      ///< True to render the actual cube, false to hide it.
-             showAxis,      ///< True to render the coordinate axes, false to hide them.
-             runAnim,       ///< True to update the current animation, false otherwise
-             runProgram,    ///< True to continue running the program (handling events, 
+TCAnim *currAnim;           ///< Pointer to the current animation.
+bool    showFps    = false, ///< True to render the FPS counter, false to hide it.
+        showCube   = true,  ///< True to render the actual cube, false to hide it.
+        showAxis   = false, ///< True to render the coordinate axes, false to hide them.
+        runAnim    = false, ///< True to update the current animation, false otherwise
+        runProgram = false, ///< True to continue running the program (handling events, 
                             ///  calling the main render loop, etc...), false to quit.
-             nullAnim;      ///< True if currAnim is the default ("null") animation.
+        nullAnim   = true;  ///< True if currAnim is the default ("null") animation.
 
-byte         cubeSize[3];   ///< The current size of the cube.  This variable should not
+byte    cubeSize[3];        ///< The current size of the cube.  This variable should not
                             ///  be modified, use the \ref SetCubeSize function instead.
 
 SDL_Surface *screen;        ///< Pointer to the current SDL screen.
@@ -89,9 +89,6 @@ Uint32 scrFlags =           ///< The initial SDL screen flags.
 ///
 int main(int argc, char *argv[])
 {
-    showCube   = true;          // Initially, we set showCube as true to display the cube.
-    runProgram = false;         // We also don't run the program (event loop),
-    runAnim    = false;         // or the animation until everything is initialized.
     SetTickRate(30);            // Also before initializing anything, we set the tick rate,
     SetCubeSize(8, 8, 8);       // and the initial cube size (also sets currAnim).
 
@@ -245,6 +242,8 @@ void SetAnim(TCAnim *newAnim)
 ///
 /// Sets the global cube size array (\ref cubeSize), updates the drawing position origin
 /// (using the current LED spacing), and sets the current animation to the default one.
+/// This function will also scale the coordinate axes in all directions relative to the
+/// size of the new cube.
 ///
 /// \param sx The new size (in voxels) of the cube in the x-direction.
 /// \param sy The new size (in voxels) of the cube in the y-direction.
@@ -252,7 +251,7 @@ void SetAnim(TCAnim *newAnim)
 ///
 /// \remarks  If invalid values are passed (i.e. a size is equal to 0), this function does
 ///           not modify the cubeSize array.
-/// \see      cubeSize | ledStartPos | ledSpacing | SetAnim
+/// \see      cubeSize | ledStartPos | ledSpacing | axisLength
 ///
 void SetCubeSize(byte sx, byte sy, byte sz)
 {
@@ -264,6 +263,10 @@ void SetCubeSize(byte sx, byte sy, byte sz)
     ledStartPos[0] = 0 - (cubeSize[0] - 1) * (ledSpacing / 2);
     ledStartPos[1] = 0 - (cubeSize[1] - 1) * (ledSpacing / 2);
     ledStartPos[2] = 0 - (cubeSize[2] - 1) * (ledSpacing / 2);
+    // We also update the coordinate axes lengths.
+    axisLength[0]  = (ledSpacing * 1.5) * (cubeSize[0] - 1);
+    axisLength[1]  = (ledSpacing * 1.5) * (cubeSize[1] - 1);
+    axisLength[2]  = (ledSpacing * 1.5) * (cubeSize[2] - 1);
     // Finally, we clear the current animation.
     SetAnim(NULL);
 }
