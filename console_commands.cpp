@@ -171,11 +171,11 @@ void clear(vectStr const& argv)
     }
     else if (argv.size() == 1)
     {
-        if (argv[1] == "-o" || argv[1] == "-output")
+        if (argv[0] == "-o" || argv[0] == "-output")
         {
             ClearOutput();
         }
-        else if (argv[1] == "-h" || argv[1] == "-history")
+        else if (argv[0] == "-h" || argv[0] == "-history")
         {
             ClearHistory();
         }
