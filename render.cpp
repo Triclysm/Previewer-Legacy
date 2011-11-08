@@ -480,7 +480,8 @@ void DrawCube()
     ledCurrPos[0] = ledStartPos[0];
     ledCurrPos[1] = ledStartPos[1];
     ledCurrPos[2] = ledStartPos[2];
-
+    // We also need to lock the animation mutex, since we need access to the voxel data.
+    LockAnimMutex();
     // Now, we create a different render loop for the different animation color types.
     // We do this so we don't perform a comparison for every voxel in the cube.  The outer
     // loops for each case should be the same (i.e. loop through all x, y, and z values).
@@ -584,6 +585,8 @@ void DrawCube()
         default:
             break;
     }
+    // Finally, we unlock the animation mutex.
+    UnlockAnimMutex();
 }
 
 

@@ -545,15 +545,21 @@ TCAnim *LuaAnimLoader(char const *fname, int argc, int *argv)
     pLuaState = lua_open();
     luaL_openlibs(pLuaState);
     // Next, we attempt to open the animation file from the passed filename.
-    if (luaL_loadfile(pLuaState, fpath.c_str()))
+    if (luaL_loadfile(pLuaState, fpath.c_str()))    // So, if Lua couldn't load the file...
     {
-        // If we couldn't open the file, show an error in the console, cleanup, and return.
-        std::string errMsg = "Error - could not load file \"";
-        errMsg += fname;
-        errMsg += "\"!";
-        WriteOutput(errMsg);
-        lua_close(pLuaState);
-        return NULL;
+        // Try to load the filename with .lua appended to it.
+        fpath += ".lua";
+        if (luaL_loadfile(pLuaState, fpath.c_str()))
+        {       
+            // We couldn't open the file, so display an error, cleanup, and return.
+            std::string errMsg = "Error - could not load file \"";
+            errMsg += fname;
+            errMsg += "\"!\n";
+            errMsg += "Ensure that the file exists, and try again.";
+            WriteOutput(errMsg);
+            lua_close(pLuaState);
+            return NULL;
+        }
     }
     // Next, we see if Lua can parse the given file.
     if (lua_pcall(pLuaState, 0, 0, 0))

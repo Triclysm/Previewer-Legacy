@@ -940,7 +940,9 @@ void RegisterCommands()
         "remaining arguments are any arguments required by the animation (extra arguments "
         "are ignored, but passing too few may result in an error).  Examples:\n\n"
         "    loadanim sendplane.lua    Loads the sendplane.lua animation.\n"
-        "    loadanim rain.lua 4       Loads the rain.lua animation with 4 rain drops."));
+        "    loadanim rain.lua 4       Loads the rain.lua animation with 4 rain drops.\n\n"
+        "Note that the .lua extension is optional (i.e. \"loadanim rain\" will load the "
+        "file rain.lua, unless the file rain exists - which will be executed instead)."));
 
     cmdList.push_back(new ConsoleCommand("loadscript", loadscript,
         "Loads a script from a file. Usage:\n\n"
