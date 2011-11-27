@@ -264,9 +264,9 @@ void SetCubeSize(byte sx, byte sy, byte sz)
     ledStartPos[1] = 0 - (cubeSize[1] - 1) * (ledSpacing / 2);
     ledStartPos[2] = 0 - (cubeSize[2] - 1) * (ledSpacing / 2);
     // We also update the coordinate axes lengths.
-    axisLength[0]  = (ledSpacing * 1.5) * (cubeSize[0] - 1);
-    axisLength[1]  = (ledSpacing * 1.5) * (cubeSize[1] - 1);
-    axisLength[2]  = (ledSpacing * 1.5) * (cubeSize[2] - 1);
+    axisLength[0]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[0] - 1));
+    axisLength[1]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[1] - 1));
+    axisLength[2]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[2] - 1));
     // Finally, we clear the current animation.
     SetAnim(NULL);
 }

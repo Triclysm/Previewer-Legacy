@@ -663,6 +663,73 @@ void runanim(vectStr const& argv)
     }
 }
 
+void screenshot(vectStr const& argv)
+{
+    if (argv.size() > 1)
+    {
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+        return;
+    }
+
+    std::string fname;
+    if (argv.size() == 1)   // So, if the user specified a filename...
+    {
+        fname = argv[0];        // Set the file name as the only argument.
+        // If the user did not specify an extension, add .bmp to the filename.
+        if (fname.find('.') == std::string::npos) fname += ".bmp";
+    }
+    else                    // Else, if the user wants to use the default...
+    {
+        static unsigned int i = 0;      // The current number of screenshots.
+        std::stringstream tmpStr;
+        tmpStr << "tc" << i << ".bmp";
+        fname = tmpStr.str();
+        i++;                            // Finally, increment the screenshot count.
+    }
+    // First, we need to create a temporary SDL surface, based on the current screen.
+    SDL_Surface *tmpSurface = SDL_CreateRGBSurface(
+        SDL_SWSURFACE, screen->w, screen->h, 24,
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+    0x000000FF, 0x0000FF00, 0x00FF0000, 0
+#else
+    0x00FF0000, 0x0000FF00, 0x000000FF, 0
+#endif
+        );
+    if (tmpSurface == NULL)     // If we couldn't get a surface, show an error and return.
+    {
+        WriteOutput("Error - could not create temporary SDL surface!");
+        return;
+    }
+    // Next, we need to create a temporary pixel buffer.
+    char *pixels = (char*)malloc(3 * tmpSurface->w * tmpSurface->h);
+    if (pixels == NULL)     // If we couldn't get the memory, show an error and return.
+    {
+        WriteOutput("Error - could not allocate pixel buffer!");
+        SDL_FreeSurface(tmpSurface);
+        return;
+    }
+    // Now that we have a buffer, tell OpenGL to copy pixel data into our buffer.
+    glReadPixels(0, 0, tmpSurface->w, tmpSurface->h,
+                 GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    // Next, we copy the pixel data in the proper order, one horizontal line at a time.
+    for (int i = 0; i < tmpSurface->h; i++)
+    {
+        memcpy( ((char*)tmpSurface->pixels) + tmpSurface->pitch * i,
+                pixels + (3 * tmpSurface->w) * (tmpSurface->h - i - 1),
+                tmpSurface->w * 3
+            );
+    }
+    // We can free our temporary pixel buffer now, since all the data is in the surface.
+    free(pixels);
+    // Lastly, we attempt to save the surface as a bitmap image file.
+	if (SDL_SaveBMP(tmpSurface, fname.c_str())) // If we couldn't save the image..
+    {
+        WriteOutput("Error - could not save " + argv[0]);   // Show an error.
+    }
+    // Finally, before returning, we free all memory associated with our temporary surface.
+    SDL_FreeSurface(tmpSurface);
+}
+
 void showaxis(vectStr const& argv)
 {
     switch (argv.size())
@@ -974,6 +1041,14 @@ void RegisterCommands()
         "If [bool] evaluates to true, the animation will begin updating.  If [bool] "
         "evaluates to false, the animation will stop.  If [bool] is omitted, the running "
         "state of the animation is toggled."));
+
+    cmdList.push_back(new ConsoleCommand("screenshot", screenshot,
+        "Saves a bitmap image of the current screen, at the running resolution.  Usage:\n\n"
+        "    screenshot [filename]    Where [filename] is an optional string parameter.\n\n"
+        "If [filename] is omitted, screenshots are saved in increasing numbers prefixed "
+        "with tc (tc0.bmp, tc1.bmp, tc2.bmp, etc...).  If no file extension is specified, "
+        ".bmp is appended to the file name automatically.  To avoid saving the console "
+        "text when taking screenshots, consider binding this command to a key."));
 
     cmdList.push_back(new ConsoleCommand("showaxis", showaxis,
         "Toggles or sets the three coordinate axes from being rendered.  Usage:\n\n"
