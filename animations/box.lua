@@ -7,10 +7,8 @@ corner 	= nil
 mSize	= nil
 state	= true
 
-bitField = {{false,false,false},	{true,false,false},
-			{false,true,false},		{true,true,false},
-			{false,false,true},		{true,false,true},
-			{false,true,true},		{true,true,true}}
+bitField = {{0,0,0},	{1,0,0}, 	{0,1,0},	{1,1,0},
+			{0,0,1},	{1,0,1},	{0,1,1},	{1,1,1}}
 
 function Initialize(_speed)
 	math.randomseed(os.time())
@@ -49,7 +47,7 @@ end
 
 -- Translated Voxels to proper position
 function  T(axis, coord)
-	if( bitField[corner][axis + 1]) then 
+	if( bitField[corner][axis + 1] == 1) then 
 		return (__AXIS[axis] - 1) - coord
 	else
 		return coord
