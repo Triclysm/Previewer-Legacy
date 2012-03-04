@@ -724,7 +724,7 @@ void screenshot(vectStr const& argv)
     // We can free our temporary pixel buffer now, since all the data is in the surface.
     free(pixels);
     // Lastly, we attempt to save the surface as a bitmap image file.
-	if (SDL_SaveBMP(tmpSurface, fname.c_str())) // If we couldn't save the image..
+    if (SDL_SaveBMP(tmpSurface, fname.c_str())) // If we couldn't save the image..
     {
         WriteOutput("Error - could not save " + argv[0]);   // Show an error.
     }

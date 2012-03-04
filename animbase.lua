@@ -21,7 +21,6 @@
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 -- *                                      CONSTANTS                                      *
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-__AXIS     = {}
 X_AXIS   = 0    -- Represents the x-axis.
 Y_AXIS   = 1    -- Represents the y-axis.
 Z_AXIS   = 2    -- Represents the z-axis.
@@ -40,6 +39,7 @@ RGB_HEX  = -2   --
 sx = 0              -- The cube size in the x-dimension (set by InitSize).
 sy = 0              -- The cube size in the y-dimension (set by InitSize).
 sz = 0              -- The cube size in the z-dimension (set by InitSize).
+sc = {}             -- The cube size as an array (can be used with the axis constants).
 
 _numColors = -1     -- The number of colors of the animation (set by SetNumColors).
 _setColors = false  -- Set to true after the call of SetNumColors.
@@ -65,13 +65,12 @@ OAXIS[XY_PLANE][1] = Y_AXIS
 
 -- Called when the animation is created, this stores the cube size in the above variables.
 function _InitSize(sizeX, sizeY, sizeZ)
-    sx = sizeX
-    sy = sizeY
-    sz = sizeZ
-
-    __AXIS[X_AXIS] = sizeX
-    __AXIS[Y_AXIS] = sizeY
-    __AXIS[Z_AXIS] = sizeZ
+    sx         = sizeX
+    sy         = sizeY
+    sz         = sizeZ
+    sc[X_AXIS] = sizeX
+    sc[Y_AXIS] = sizeY
+    sc[Z_AXIS] = sizeZ
 end
 
 -- Sets the number of colors in the animation.  Must be called at least once, and all
@@ -84,5 +83,5 @@ function SetNumColors(colors)
 end
 
 function MaxSize()
-    return math.max(math.max(sx, sy), sz)
+    return math.max(sx, sy, sz)
 end
