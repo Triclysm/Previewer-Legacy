@@ -38,8 +38,8 @@
 #include <cctype>       // Used for string comparison.
 #include <list>         // STL List container.
 #include <vector>       // STL Vector container.
-#include <fstream>
-#include <queue>
+#include <fstream>      // Used for Triclysm script I/O.
+#include <queue>        // Used to queue console commands if a delay is required.
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

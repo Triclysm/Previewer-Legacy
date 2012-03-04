@@ -24,10 +24,11 @@
 ///        also be added to the RegisterCommands function at the bottom of this file.
 ///
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <cstring>
+#include <string>                   // Required to pass arguments to commands.
+#include <vector>                   // Required to pass arguments to commands.
+#include <sstream>                  // Useful for creating strings or converting values.
+#include <cstring>                  // Required to use memcpy in the screenshot command.
+
 #include "console.h"
 #include "events.h"
 #include "format_conversion.h"

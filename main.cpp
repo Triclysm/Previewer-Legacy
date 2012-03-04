@@ -31,16 +31,18 @@
  *                               PREPROCESSOR DIRECTIVES                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <cstdio>			// The standard I/O library.
-#include "TCAnim.h"			// TCAnim object definition.
-#include "SDL.h"			// The main SDL include file.
-#include "SDL_opengl.h"		// SDL OpenGL header (includes GL.h and GLU.h).
-#include "SDL_thread.h"		// SDL threading header.
 
-#include "render.h"			// Includes all OpenGL-related rendering functions.
-#include "main.h"			// The complimentary header to this source file.
+#include <cstdio>                       // The standard I/O library.
+#include "TCAnim.h"                     // TCAnim object definition.
+#include "SDL.h"                        // The main SDL include file.
+#include "SDL_opengl.h"                 // SDL OpenGL header (includes GL.h and GLU.h).
+#include "SDL_thread.h"                 // SDL threading header.
+
+#include "main.h"                       // The complimentary header to this source file.
+#include "render.h"                     // Includes all OpenGL-related rendering functions.
 #include "console.h"
 #include "events.h"
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                  GLOBAL VARIABLES                                   *
