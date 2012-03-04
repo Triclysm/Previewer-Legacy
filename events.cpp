@@ -239,7 +239,7 @@ void HandleConsoleKey(SDLKey ksym, SDLMod kmod)
             InputAddChar('.');
             break;
         default:
-			break;
+            break;
     }
     // Did the user type a letter?
     if (ksym >= SDLK_a && ksym <= SDLK_z)
@@ -403,7 +403,7 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             break;
 
         default:
-			break;
+            break;
     }
 }
 
