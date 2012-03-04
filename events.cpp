@@ -238,6 +238,8 @@ void HandleConsoleKey(SDLKey ksym, SDLMod kmod)
         case SDLK_PERIOD:
             InputAddChar('.');
             break;
+        default:
+			break;
     }
     // Did the user type a letter?
     if (ksym >= SDLK_a && ksym <= SDLK_z)
@@ -399,6 +401,9 @@ void HandleNormalKey(SDLKey ksym, SDLMod kmod)
             viewRotX = 30.0f;
             viewRotY = 20.0f;
             break;
+
+        default:
+			break;
     }
 }
 

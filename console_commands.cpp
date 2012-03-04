@@ -27,6 +27,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <cstring>
 #include "console.h"
 #include "events.h"
 #include "format_conversion.h"

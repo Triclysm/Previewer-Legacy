@@ -3,3 +3,5 @@ Debug/*
 Release/*
 *.vcproj
 *.user
+glob:.cproject
+glob:.project

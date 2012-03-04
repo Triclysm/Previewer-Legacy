@@ -9,7 +9,7 @@ end
 
 
 function Update()
-    Shift(ZX_PLANE, 1, false)
+    Shift(ZX_PLANE, 1)
     SetColumnState(X_AXIS, 0, cz, true)
     cz = cz + cc
     if (cz < 0) then

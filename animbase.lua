@@ -21,7 +21,7 @@
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 -- *                                      CONSTANTS                                      *
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+__AXIS     = {}
 X_AXIS   = 0    -- Represents the x-axis.
 Y_AXIS   = 1    -- Represents the y-axis.
 Z_AXIS   = 2    -- Represents the z-axis.
@@ -68,6 +68,10 @@ function _InitSize(sizeX, sizeY, sizeZ)
     sx = sizeX
     sy = sizeY
     sz = sizeZ
+
+    __AXIS[X_AXIS] = sizeX
+    __AXIS[Y_AXIS] = sizeY
+    __AXIS[Z_AXIS] = sizeZ
 end
 
 -- Sets the number of colors in the animation.  Must be called at least once, and all
@@ -77,4 +81,8 @@ function SetNumColors(colors)
         _numColors = colors
         _setColors = true
     end
+end
+
+function MaxSize()
+    return math.max(math.max(sx, sy), sz)
 end
