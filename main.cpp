@@ -413,18 +413,21 @@ int UpdateAnim(void *unused)
         if (runAnim)            // If we are supposed to run the animation...
         {
             LockAnimMutex();        // We lock the animation mutex,
-            currAnim->Tick();       // and update the animation's state.
-            // If we have a driver that we need to update, we do that too.
-            LockDriverMutex();
+            currAnim->Tick();       // update the animation's state,
+            UnlockAnimMutex();      // and unlock the animation mutex.
+
+            // If we have a driver that we need to update, we do that here too.
+            LockDriverMutex();      // First, we lock the driver mutex.
+            // So, if the driver is supposed to run, and the driver is synchronous...
             if (    (runDriver)
                  && (currDriver->GetDriverType() & TC_DRIVER_TYPE_SYNCHRONOUS ) )
             {
-                currDriver->Poll();
+                currDriver->Poll();     // Poll the driver.
             }
-            UnlockDriverMutex();
-            UnlockAnimMutex();      // Finally, we unlock the animation mutex.
+            UnlockDriverMutex();    // Finally, we can unlock the driver mutex.
         }
-        SDL_Delay(msPerTick - (SDL_GetTicks() - updateTime));   // Finally, we wait until we need to for the next Tick.
+        // Lastly, we delay by the proper amount before the next Tick.
+        SDL_Delay(msPerTick - (SDL_GetTicks() - updateTime));
     }
     return 0;
 }
@@ -445,15 +448,12 @@ int UpdateDriver(void *unused)
     {
         Uint32 delayVal,
                pollTime = SDL_GetTicks();
-
+        // First, we lock the driver mutex.
         LockDriverMutex();
-
-        LockAnimMutex();
+        // Now, we can poll the driver, and get the polling rate.
         currDriver->Poll();
-        UnlockAnimMutex();
-
         delayVal = currDriver->GetPollRate();
-
+        // Now, we can unlock the driver mutex, and delay for the appropriate time.
         UnlockDriverMutex();
         SDL_Delay(delayVal - (SDL_GetTicks() - pollTime));
     }

@@ -37,10 +37,10 @@
 /// \param cubeSize The size (in voxels) of each dimension.
 /// \see AllocateCube | pCubeState
 ///
-TCDriver::TCDriver(std::string name)
+TCDriver::TCDriver()
 {
-    driverName = name;
     driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
+    driverRate = 0;
 }
 
 ///
@@ -51,11 +51,15 @@ TCDriver::TCDriver(std::string name)
 /// \param cubeSize The size (in voxels) of each dimension.
 /// \see AllocateCube | pCubeState
 ///
-TCDriver::TCDriver(std::string name, Uint32 rate)
+TCDriver::TCDriver(Uint32 rate)
+{
+    driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
+    driverRate = rate;
+}
+
+TCDriver::~TCDriver()
 {
 
-    driverName = name;
-    driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
 }
 
 void TCDriver::Poll()
