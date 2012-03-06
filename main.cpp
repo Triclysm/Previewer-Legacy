@@ -34,6 +34,7 @@
 
 #include <cstdio>                       // The standard I/O library.
 #include "TCAnim.h"                     // TCAnim object definition.
+#include "TCDriver.h"                   // TCDriver object definition
 #include "SDL.h"                        // The main SDL include file.
 #include "SDL_opengl.h"                 // SDL OpenGL header (includes GL.h and GLU.h).
 #include "SDL_thread.h"                 // SDL threading header.
@@ -48,20 +49,25 @@
  *                                  GLOBAL VARIABLES                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-SDL_Thread *animThread;         ///< The mutex lock for the \ref currAnim object.
-SDL_mutex  *animMutex;          ///< The animation thread object.
-bool        threadInit = false; ///< Flag used to check if the animation thread is running.
+TCAnim     *currAnim     = NULL; ///< Pointer to the current animation.
+TCDriver   *currDriver   = NULL; ///< Pointer to the current driver.
 
-Uint32      tickRate,           ///< The current tick rate (ticks/second).
-            msPerTick;          ///< Milliseconds per tick (see \ref SetTickRate).
-int         iScrWidth  = 640,   ///< The initial screen width (in pixels).
-            iScrHeight = 480;   ///< The initial screen height (in pixels).
+SDL_Thread *animThread   = NULL, ///< The animation thread object.
+           *driverThread = NULL; ///< The driver thread object.
 
-TCAnim *currAnim;           ///< Pointer to the current animation.
+SDL_mutex  *animMutex    = NULL, ///< The mutex lock for the \ref currAnim object.
+           *driverMutex  = NULL; ///< The mutex lock for the \ref currAnim object.
+
+Uint32      tickRate,            ///< The current tick rate (ticks/second).
+            msPerTick;           ///< Milliseconds per tick (see \ref SetTickRate).
+int         iScrWidth  = 640,    ///< The initial screen width (in pixels).
+            iScrHeight = 480;    ///< The initial screen height (in pixels).
+
 bool    showFps    = false, ///< True to render the FPS counter, false to hide it.
         showCube   = true,  ///< True to render the actual cube, false to hide it.
         showAxis   = false, ///< True to render the coordinate axes, false to hide them.
         runAnim    = false, ///< True to update the current animation, false otherwise
+        runDriver  = false, ///< True to update a driver synchronously with the animation.
         runProgram = false, ///< True to continue running the program (handling events, 
                             ///  calling the main render loop, etc...), false to quit.
         nullAnim   = true;  ///< True if currAnim is the default ("null") animation.
@@ -106,7 +112,7 @@ int main(int argc, char *argv[])
     runProgram = true;          // we enter the main event loop (defined in events.h).
     // The last thing we need to do is start the animation update thread (we cannot
     // continue without it). This thread calls currAnim->Update() at the current tickrate.
-    if (!InitAnimThread()) return 1;    // We cannot continue without threads, so return.
+    if (!InitThreads()) return 1;    // We cannot continue without threads, so return.
 
     EventLoop();        // Everything is ok, so we can finally start the main event loop.
     CleanupSDL();       // Lastly, we clean up SDL when our event loop returns,
@@ -169,9 +175,13 @@ bool InitSDL()
 ///
 void CleanupSDL()
 {
+    SetDriver(NULL);
+    SetAnim(NULL);
+
     SDL_WaitThread(animThread, NULL);
     SDL_DestroyMutex(animMutex);
-    delete currAnim;
+    SDL_DestroyMutex(driverMutex);
+
     SDL_Quit();
 }
 
@@ -209,9 +219,9 @@ void SetTickRate(Uint32 newRate)
 /// passed to this function, and updates the state of the nullAnim condition.
 ///
 /// \param   newAnim A pointer to the new animation.  This should be initialized with
-///          the \ref cubeSize variable to avoid cube size issues.
+///          the \ref cubeSize variable to avoid cube size issues.  Set this to NULL
+///          to clear the animation in the cube (and load a blank animation).
 ///
-/// \returns True if the thread and mutex were initialized successfully, false otherwise.
 /// \see     cubeSize | currAnim | nullAnim
 ///
 void SetAnim(TCAnim *newAnim)
@@ -234,6 +244,64 @@ void SetAnim(TCAnim *newAnim)
     }
     // Finally, we unlock the animMutex before returning.
     UnlockAnimMutex();
+}
+
+
+///
+/// \brief Set Driver
+///
+/// Updates the current driver pointed to by \ref currDriver with the new driver
+/// passed to this function, and updates the state of the nullAnim condition.
+///
+/// \param   newDriver  A pointer to the new cube driver.  This object needs to be
+///                     fully initialized before passing it to this function.  To
+///                     unload a driver, set newDriver as NULL.
+///
+/// \see     currDriver
+///
+void SetDriver(TCDriver *newDriver)
+{
+    // First, we gracefully stop the current driver.
+    LockAnimMutex(); LockDriverMutex();
+    runDriver = false;
+    UnlockDriverMutex(); UnlockAnimMutex();
+    if (driverThread != NULL)
+    {
+        SDL_WaitThread(driverThread, NULL);
+    }
+    // Now, we can safely delete the driver object, after we re-lock
+    // the driver mutex.
+    LockDriverMutex();
+    delete currDriver;
+
+    if (newDriver != NULL)  // So, if we were passed a valid driver...
+    {
+        currDriver = newDriver;
+        // If the driver is synchronous...
+        if (currDriver->GetDriverType() & TC_DRIVER_TYPE_SYNCHRONOUS)
+        {
+            runDriver    = true;
+            driverThread = NULL;
+        }
+        // Else, if the driver is to be run asynchronously...
+        else
+        {
+            // Instead, we create a new thread (based on the UpdateDriver
+            // function) and have it continually loop in the thread.
+            runDriver    = true;
+            driverThread = SDL_CreateThread(UpdateDriver, NULL);
+            if (driverThread == NULL)   // If we couldn't create the thread...
+            {
+                // Print an error, and delete the driver object (since it's invalid now).
+                runDriver = false;
+                delete currDriver;
+                currDriver = NULL;
+                WriteOutput("Error - could not create driver thread!");
+            }
+        }
+    }
+
+    UnlockDriverMutex();
 }
 
 
@@ -303,10 +371,12 @@ byte *GetCubeSize()
 /// \remarks If this function returns false, the application should exit immediately.
 /// \see     animThread | animMutex | UpdateAnimation
 ///
-bool InitAnimThread()
+bool InitThreads()
 {
-    animMutex = SDL_CreateMutex();  // Then, we attempt to create a mutex.
-    if (animMutex == NULL)          // If we couldn't create the mutex...
+    animMutex   = SDL_CreateMutex();  // First, we attempt to create the animation
+    driverMutex = SDL_CreateMutex();  // and driver mutexes.
+    // If either mutex could not be created...
+    if (animMutex == NULL || driverMutex == NULL)
     {
         // Show the appropriate error to the user, shut down SDL, and return false.
         fprintf(stderr, TC_ERROR_MUTEX_INIT, SDL_GetError());
@@ -322,7 +392,6 @@ bool InitAnimThread()
         SDL_Quit();
         return false;
     }
-    threadInit = true;
     return true;                    // If we get here, everything is fine, so return true.
 }
 
@@ -340,13 +409,53 @@ int UpdateAnim(void *unused)
 {
     while (runProgram)      // So, looping while the program is still running...
     {
+        Uint32 updateTime = SDL_GetTicks();
         if (runAnim)            // If we are supposed to run the animation...
         {
             LockAnimMutex();        // We lock the animation mutex,
-            currAnim->Tick();       // update the animation's state,
-            UnlockAnimMutex();      // and unlock the mutex.
+            currAnim->Tick();       // and update the animation's state.
+            // If we have a driver that we need to update, we do that too.
+            LockDriverMutex();
+            if (    (runDriver)
+                 && (currDriver->GetDriverType() & TC_DRIVER_TYPE_SYNCHRONOUS ) )
+            {
+                currDriver->Poll();
+            }
+            UnlockDriverMutex();
+            UnlockAnimMutex();      // Finally, we unlock the animation mutex.
         }
-        SDL_Delay(msPerTick);   // Finally, we wait until we need to for the next Tick.
+        SDL_Delay(msPerTick - (SDL_GetTicks() - updateTime));   // Finally, we wait until we need to for the next Tick.
+    }
+    return 0;
+}
+
+
+///
+/// \brief Update Driver
+///
+/// This function is run in a seperate thread, which continuously calls the Poll
+/// method of the current driver.
+///
+/// \returns Unused return value.
+/// \see     InitAnimThread | msPerTick | runAnim | runProgram | currAnim
+///
+int UpdateDriver(void *unused)
+{
+    while (runDriver)      // So, looping while the driver is still running...
+    {
+        Uint32 delayVal,
+               pollTime = SDL_GetTicks();
+
+        LockDriverMutex();
+
+        LockAnimMutex();
+        currDriver->Poll();
+        UnlockAnimMutex();
+
+        delayVal = currDriver->GetPollRate();
+
+        UnlockDriverMutex();
+        SDL_Delay(delayVal - (SDL_GetTicks() - pollTime));
     }
     return 0;
 }
@@ -379,6 +488,40 @@ void LockAnimMutex()
 void UnlockAnimMutex()
 {
     if (runProgram && SDL_mutexV(animMutex) == -1)
+    {
+        fprintf(stderr, TC_ERROR_MUTEX_UNLOCK, SDL_GetError());
+        exit(1);
+    }
+}
+
+
+///
+/// \brief Lock Driver Mutex
+///
+/// Performs a mutex lock on the \ref DriverMutex object.
+///
+/// \see DriverMutex
+///
+void LockDriverMutex()
+{
+    if (runProgram && SDL_mutexP(driverMutex) == -1)
+    {
+        fprintf(stderr, TC_ERROR_MUTEX_LOCK, SDL_GetError());
+        exit(1);
+    }
+}
+
+
+///
+/// \brief Unlock Driver Mutex
+///
+/// Unlocks the Driver mutex lock.
+///
+/// \see DriverMutex
+///
+void UnlockDriverMutex()
+{
+    if (runProgram && SDL_mutexV(driverMutex) == -1)
     {
         fprintf(stderr, TC_ERROR_MUTEX_UNLOCK, SDL_GetError());
         exit(1);
