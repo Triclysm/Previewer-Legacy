@@ -268,6 +268,7 @@ void SetDriver(TCDriver *newDriver)
     if (driverThread != NULL)
     {
         SDL_WaitThread(driverThread, NULL);
+        driverThread = NULL;
     }
     // Now, we can safely delete the driver object, after we re-lock
     // the driver mutex.
@@ -335,8 +336,9 @@ void SetCubeSize(byte sx, byte sy, byte sz)
     axisLength[0]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[0] - 1));
     axisLength[1]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[1] - 1));
     axisLength[2]  = (GLfloat)((ledSpacing * 1.5) * (cubeSize[2] - 1));
-    // Finally, we clear the current animation.
+    // Finally, we clear the current animation and driver.
     SetAnim(NULL);
+    SetDriver(NULL);
 }
 
 
@@ -420,7 +422,7 @@ int UpdateAnim(void *unused)
             LockDriverMutex();      // First, we lock the driver mutex.
             // So, if the driver is supposed to run, and the driver is synchronous...
             if (    (runDriver)
-                 && (currDriver->GetDriverType() & TC_DRIVER_TYPE_SYNCHRONOUS ) )
+                 && (currDriver->GetDriverType() == TC_DRIVER_TYPE_SYNCHRONOUS ) )
             {
                 currDriver->Poll();     // Poll the driver.
             }

@@ -837,7 +837,15 @@ void tick(vectStr const& argv)
 
 void tickrate(vectStr const& argv)
 {
-    if (argv.size() == 1)
+    if (argv.size() == 0)
+    {
+        std::string outputStr = "Current tickrate: ";
+        std::stringstream ssTickRate;
+        ssTickRate << GetTickRate();
+        outputStr += ssTickRate.str();
+        WriteOutput(outputStr);
+    }
+    else if (argv.size() == 1)
     {
         std::stringstream strTickRate(argv[0]);
         Uint16 newTickRate;
@@ -848,11 +856,11 @@ void tickrate(vectStr const& argv)
         else
         {
             SetTickRate(newTickRate);
-        }
+        } 
     }
     else
     {
-        TC_Console_Error::WrongArgCount(argv.size(), 1);
+        WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
     }
 }
 

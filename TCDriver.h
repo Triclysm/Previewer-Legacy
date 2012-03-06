@@ -39,8 +39,7 @@ class TCDriver
 {
   public:
     // Object constructors:
-    TCDriver();                         // Synchronous constructor
-    TCDriver(Uint32 rate);              // Asynchronous constructor
+    TCDriver(Uint32 rate = 0);          // Constructor
     virtual ~TCDriver();                // Destructor.
 
     virtual void Poll();                // Driver poll method.

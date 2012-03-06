@@ -30,20 +30,6 @@
 
 
 ///
-/// \brief Driver Constructor (Synchronous)
-///
-/// Creates a basic TCDriver object, just storing the passed variables. 
-///
-/// \param cubeSize The size (in voxels) of each dimension.
-/// \see AllocateCube | pCubeState
-///
-TCDriver::TCDriver()
-{
-    driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
-    driverRate = 0;
-}
-
-///
 /// \brief Driver Constructor (Asynchronous)
 ///
 /// Creates a basic TCDriver object, just storing the passed variables. 
@@ -53,8 +39,16 @@ TCDriver::TCDriver()
 ///
 TCDriver::TCDriver(Uint32 rate)
 {
-    driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
-    driverRate = rate;
+    if (!rate)
+    {
+        driverType = TC_DRIVER_TYPE_SYNCHRONOUS;
+        driverRate = 0;
+    }
+    else
+    {
+        driverType = TC_DRIVER_TYPE_ASYNCHRONOUS;
+        driverRate = rate;
+    }
 }
 
 TCDriver::~TCDriver()
