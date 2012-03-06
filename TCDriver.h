@@ -23,3 +23,34 @@
 /// \brief This file contains the definition of the TCDriver class as implemented by the
 ///        TCDriver.cpp source file.
 ///
+
+#pragma once
+#ifndef TC_DRIVER_BASE_
+#define TC_DRIVER_BASE_
+
+#include "SDL.h"            // The main SDL include file.
+#include "SDL_thread.h"     // SDL threading header.
+#include <string>           // Strings library.
+
+#define TC_DRIVER_TYPE_ASYNCHRONOUS 0x00
+#define TC_DRIVER_TYPE_SYNCHRONOUS  0x01
+
+class TCDriver
+{
+  public:
+    // Object constructors:
+    TCDriver(std::string name);                 // Synchronous constructor
+    TCDriver(std::string name, Uint32 rate);    // Asynchronous constructor
+    virtual void   Poll();
+    virtual void   SetPollRate(Uint32 rate);    // Need to keep these as discrete
+    virtual Uint32 GetPollRate();               // functions because of threading.
+    Uint8          GetDriverType();             // Gets the driver type.
+
+  private:
+    Uint8       driverType;     // 
+    std::string driverName;     // 
+    Uint32      driverRate;     // Poll rate for asynchronous drivers.
+};
+
+
+#endif
