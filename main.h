@@ -38,8 +38,8 @@
 #include "SDL.h"        // The main SDL include file.
 
 #define TC_NAME                "Triclysm"
-#define TC_VERSION             "0.20"
-#define TC_WINDOW_TITLE        "Triclysm (Alpha)"  // The window title.
+#define TC_VERSION             "0.9b"
+#define TC_WINDOW_TITLE        "Triclysm (Beta)"  // The window title.
 
 // Various error strings used in the initialization functions.
 #define TC_ERROR_SDL_INIT      "Error - SDL initialization failed:\n%s\n"
@@ -80,15 +80,16 @@ extern int           iScrWidth,     // The initial screen width (in pixels).
  *                                 FUNCTION PROTOTYPES                                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int  main(int argc, char *argv[]);              // The main program entry point.
-bool InitSDL();                                 // Initializes all SDL subsystems.
-void CleanupSDL();                              // Cleans up all SDL objects.
-void DisplayInitMessage();                      // Writes initialization info to console.
-void SetTickRate(Uint32 newRate);               // Sets the animation tick rate.
-void SetCubeSize(byte sx, byte sy, byte sz);    // Updates the current cube size.
-byte *GetCubeSize();                            // Returns an array of the cube size.
-void SetAnim(TCAnim *newAnim);                  // Sets the current animation.
-void SetDriver(TCDriver *newDriver);            // Sets the current driver.
+int    main(int argc, char *argv[]);            // The main program entry point.
+bool   InitSDL();                               // Initializes all SDL subsystems.
+void   CleanupSDL();                            // Cleans up all SDL objects.
+void   DisplayInitMessage();                    // Writes initialization info to console.
+void   SetTickRate(Uint32 newRate);             // Sets the animation tick rate.
+Uint32 GetTickRate();                           // Gets the current tick rate.
+void   SetCubeSize(byte sx, byte sy, byte sz);  // Updates the current cube size.
+byte   *GetCubeSize();                          // Returns an array of the cube size.
+void   SetAnim(TCAnim *newAnim);                // Sets the current animation.
+void   SetDriver(TCDriver *newDriver);          // Sets the current driver.
 
 // Thread specific functions:
 int  UpdateAnim(void *unused);   // Updates the current animation at the current rate.
