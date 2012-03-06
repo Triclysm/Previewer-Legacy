@@ -201,6 +201,16 @@ void SetTickRate(Uint32 newRate)
     msPerTick = 1000 / tickRate;
 }
 
+///
+/// \brief Get Tick Rate
+///
+/// Gets the current tick rate.
+///
+Uint32 GetTickRate()
+{
+    return tickRate;
+}
+
 
 ///
 /// \brief Set Animation
