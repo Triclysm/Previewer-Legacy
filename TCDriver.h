@@ -39,17 +39,19 @@ class TCDriver
 {
   public:
     // Object constructors:
-    TCDriver(std::string name);                 // Synchronous constructor
-    TCDriver(std::string name, Uint32 rate);    // Asynchronous constructor
-    virtual void   Poll();
-    virtual void   SetPollRate(Uint32 rate);    // Need to keep these as discrete
-    virtual Uint32 GetPollRate();               // functions because of threading.
-    Uint8          GetDriverType();             // Gets the driver type.
+    TCDriver();                         // Synchronous constructor
+    TCDriver(Uint32 rate);              // Asynchronous constructor
+    virtual ~TCDriver();                // Destructor.
+
+    virtual void Poll();                // Driver poll method.
+
+    void   SetPollRate(Uint32 rate);    // Need to keep these as discrete
+    Uint32 GetPollRate();               // functions because of threading.
+    Uint8  GetDriverType();             // Gets the driver type.
 
   private:
-    Uint8       driverType;     // 
-    std::string driverName;     // 
-    Uint32      driverRate;     // Poll rate for asynchronous drivers.
+    Uint8  driverType;  // Type of driver (see TC_DRIVER_TYPE_ defines).
+    Uint32 driverRate;  // Poll rate for asynchronous drivers.
 };
 
 
