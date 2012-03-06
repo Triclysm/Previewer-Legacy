@@ -36,6 +36,8 @@
 #include "main.h"
 #include "TCAnim.h"
 #include "TCAnimLua.h"
+#include "SDL_net.h"
+#include "drivers/netdrv.h"
 
 typedef std::vector<std::string> vectStr;
 
@@ -513,6 +515,35 @@ void loadanim(vectStr const& argv)
     SetAnim(LuaAnimLoader(argv[0].c_str(), argv.size() - 1, argVals));
     // Finally, we delete the memory used for the argument values (if applicable).
     delete argVals;
+}
+
+void netdrv(vectStr const& argv)
+{
+    static bool initSDLNet = false;
+    if (!initSDLNet)
+    {
+        if (SDLNet_Init() < 0)
+        {
+            WriteOutput("Error - could not initialize SDLNet!");
+            fprintf(stderr, "SDLNet Error: %s\n", SDLNet_GetError());
+            initSDLNet = false;
+        }
+        else
+        {
+            WriteOutput("netdrv: Initialized SDL network library.");
+            initSDLNet = true;
+        }
+    }
+    if (!initSDLNet) return;
+    if (!(argv.size() > 0 && argv.size() <= 3))
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 3);
+    }
+    // 
+    // netdrv (l)ist        // List cube (required to use below
+    // netdrv (c)onnect #   // Connect manual by list ID
+    // netdrv (c)onnect # # // Connect manual by IP/Port
+    // netdrv (d)isconnect  // 
 }
 
 void loadscript(vectStr const& argv)
@@ -1025,6 +1056,9 @@ void RegisterCommands()
         "Loads a script from a file. Usage:\n\n"
         "    loadscript filename\n\n"
         "Where filename is the name of the script (including extension, usually .tcs)."));
+
+    cmdList.push_back(new ConsoleCommand("netdrv", netdrv,
+        ""));
 
     cmdList.push_back(new ConsoleCommand("quality", quality,
         "Changes the polygon count of the individual LED spheres making up the cube. "
