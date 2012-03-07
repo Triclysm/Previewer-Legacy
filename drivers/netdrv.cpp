@@ -1,4 +1,4 @@
-
+#include <string>
 #include "SDL.h"
 #include "SDL_net.h"
 
@@ -8,7 +8,7 @@
 #include "../console.h"
 
 TCDriver_netdrv::TCDriver_netdrv(
-    Uint32 cube_ip,  Uint16 cube_port, Uint16 listen_port, Uint8 frame_format,
+    Uint32 cube_ip,  Uint16 cube_port, Uint16 listen_port,
     bool &connected, Uint32 rate )
     : TCDriver(rate)
 {
@@ -34,11 +34,55 @@ TCDriver_netdrv::TCDriver_netdrv(
     udpPkt->address.host = cubeIp.host;
     udpPkt->address.port = cubeIp.port;
 
-    frameFormat = frame_format;
 
+    // Now attempt to retrieve cube parameters.
+    unsigned int attempts   = 3;
+    Uint32       attemptLen = 100,
+                 startTime;
+    std::string  cubeParams;
+    bool         gotParams = false;
+    for (unsigned int i = 0; i < attempts; i++)
+    {
+        SendCommand("*TP**TE*");
+        startTime = SDL_GetTicks();
+        while ((SDL_GetTicks() - startTime) < attemptLen)
+        {
+            if (RecvString(cubeParams) && ParseCubeParams(cubeParams))
+            {
+                // If we got the cube parameters, and they are valid,
+                // then we can break out of both loops.
+                gotParams = true;
+                i = attempts;
+                break;
+            }
+        }
+    }
     // If we get here, everything went okay, so we can set connected
     // to true, and write a message to the console stating that the
     // driver is loaded.
+    if (gotParams)
+    {
+        // Update the current cube size to match the physical cube.
+        byte *currSize = GetCubeSize();
+        // We only need to change the size if there is a mis-match.
+        if ( !(    remoteCubeSize[0] == currSize[0]
+                && remoteCubeSize[1] == currSize[1]
+                && remoteCubeSize[2] == currSize[2] ))
+        {
+            SetCubeSize(remoteCubeSize[0], remoteCubeSize[1], remoteCubeSize[2]);
+        }
+        delete currSize;
+
+        // Finally, output that we are connected, and set the flag to true.
+        WriteOutput("netdrv: Connected to LED cube.");
+        connected = true;
+    }
+    else
+    {
+        WriteOutput("netdrv: Error - could not connect to LED cube.");
+        WriteOutput("netdrv: Could not get parameters from remote IP.");
+        connected = false;
+    }
 }
 
 TCDriver_netdrv::~TCDriver_netdrv()
@@ -49,7 +93,7 @@ TCDriver_netdrv::~TCDriver_netdrv()
 }
 
 
-int TCDriver_netdrv::SendPacket(const std::string &toSend)
+int TCDriver_netdrv::SendCommand(const std::string &toSend)
 {
     // Prepare packet to send.
     udpPkt->address.host = cubeIp.host;
@@ -58,6 +102,34 @@ int TCDriver_netdrv::SendPacket(const std::string &toSend)
     udpPkt->len          = toSend.length();
     return SDLNet_UDP_Send(sckSend, -1, udpPkt);
 }
+
+bool TCDriver_netdrv::RecvString(std::string &toRecv)
+{
+    if (SDLNet_UDP_Recv(sckRecv, udpPkt))
+    {
+        toRecv = std::string((const char*)udpPkt->data, udpPkt->len);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool TCDriver_netdrv::ParseCubeParams(const std::string &cube_params)
+{
+    // Parameter listing:
+    //  PN = Parameter Name
+    //  PD = Parameter Dimensions
+    //  PC = Parameter Color
+    //  PF = Parameter Frame Format
+    //  PE = Parameter End
+
+    // First, ensure that all parameters were received, and record the position
+    // of the last parameter.
+    return false;
+}
+
 
 void TCDriver_netdrv::Poll()
 {
@@ -91,8 +163,5 @@ void TCDriver_netdrv::Poll()
     UnlockAnimMutex();
 
     toSend += "*TE*";
-
-    udpPkt->data = (Uint8*)toSend.c_str();
-    udpPkt->len  = toSend.length();
-    SDLNet_UDP_Send(sckSend, -1, udpPkt);
+    SendCommand(toSend);
 }

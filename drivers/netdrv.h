@@ -1,8 +1,10 @@
 
-#ifndef TC_ANIM_LUA_
-#define TC_ANIM_LUA_
+#pragma once
+#ifndef TC_DRIVER_NETDRV_
+#define TC_DRIVER_NETDRV_
 
 #include "../TCDriver.h"         // Base driver class to override.
+#include "../TCCube.h"
 #include "SDL.h"
 #include "SDL_net.h"
 
@@ -15,18 +17,20 @@ class TCDriver_netdrv : public TCDriver
 {
   public:
     // This should ask for an IP, port, asynch/synch.
-    // Everything else should be negotiated from there.
-    // SDL_Net must be init'd before constructing this.
+    // ALSO DO NEGOTIATION HERE - this is what the &connected flag is for!!!!!
     TCDriver_netdrv(
         Uint32 cube_ip,      Uint16 cube_port, Uint16 listen_port,
-        Uint8  frame_format, bool &connected,
+        bool &connected,
         Uint32 rate = 0);
     ~TCDriver_netdrv();
+    int  SendCommand(const std::string &toSend);
+    bool RecvString(std::string &toRecv);
+
     void Poll();
 
   private:
     bool      GetFrameFormat();
-    int       SendPacket(const std::string &toSend);
+    bool      ParseCubeParams(const std::string &cube_params);
 
     IPaddress cubeIp;
     UDPsocket sckSend,
@@ -34,6 +38,7 @@ class TCDriver_netdrv : public TCDriver
 
     UDPpacket *udpPkt;
     Uint8     frameFormat;
+    byte      remoteCubeSize[3];
 };
 
 
