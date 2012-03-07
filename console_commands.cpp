@@ -519,7 +519,8 @@ void loadanim(vectStr const& argv)
 
 void netdrv(vectStr const& argv)
 {
-    static bool initSDLNet = false;
+    static bool   initSDLNet = false;
+    static Uint16 listenPort;// = StringToPort("2581");
     if (!initSDLNet)
     {
         if (SDLNet_Init() < 0)
@@ -539,11 +540,88 @@ void netdrv(vectStr const& argv)
     {
         TC_Console_Error::WrongArgCount(argv.size(), 3);
     }
+
+    if (argv[0] == "list")
+    {
+        //
+    }
+    else if ((argv[0] == "c" || argv[0] == "connect") && argv.size() > 1)
+    {
+        //
+        if (argv.size() == 2)
+        {
+
+        }
+        else    // Else, manual connect by IP/Port.
+        {
+            Uint32 remoteIp,
+                   pollRate;
+            Uint16 remotePort;
+            bool driverInit = false;
+            int  tmpRes;
+            
+            if (argv.size() == 4 && StringToInt(argv[3], tmpRes) && tmpRes > 0)
+            {
+                pollRate = tmpRes;  // Asynchronous
+            }
+            else
+            {
+                pollRate = 0;       // Synchronous
+            }
+
+            if (!StringToIp(argv[1], remoteIp))
+            {
+                WriteOutput("netdrv: Error - Invalid IP address!");
+                return;
+            }
+            //if (!StringToPort(argv[2], remotePort))
+            {
+                WriteOutput("netdrv: Error - Invalid port!");
+                return;
+            }
+            TCDriver *toLoad = new TCDriver_netdrv(
+                remoteIp,
+                remotePort,
+                2582,   // THIS NEEDS TO BE CONVERTED TO NETWORK BYTE ORDER!
+                driverInit,
+                pollRate                );
+
+            if (driverInit)
+            {
+                SetDriver(toLoad);
+            }
+        }
+    }
+    else if (argv[0] == "disconnect")
+    {
+        // 
+        // Cleanup all static variables.
+
+        // Unload current driver
+        SetDriver(NULL);
+    }
+    else if (argv[0] == "cmd" && argv.size() == 2)
+    {
+        int numSent = 0;
+        // Prepare to send command to connected cube.
+        LockDriverMutex();
+        if (currDriver != NULL)
+        {
+            numSent = currDriver->SendCommand(argv[1]);
+        }
+        else
+        {
+            // driver not connected (??)
+        }
+        UnlockDriverMutex();
+    }
     // 
-    // netdrv (l)ist        // List cube (required to use below
-    // netdrv (c)onnect #   // Connect manual by list ID
-    // netdrv (c)onnect # # // Connect manual by IP/Port
-    // netdrv (d)isconnect  // 
+    // netdrv (l)ist          // List cube (required to use below
+    // netdrv (c)onnect #     // Connect manual by list ID
+    // netdrv (c)onnect # #   // Connect manual by IP/Port
+    // netdrv (c)onnect # # # // Connect manual by IP/Port/Tickrate
+    // netdrv cmd 
+    // netdrv (d)isconnect    // 
 }
 
 void loadscript(vectStr const& argv)

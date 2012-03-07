@@ -43,6 +43,7 @@ class TCDriver
     virtual ~TCDriver();                // Destructor.
 
     virtual void Poll();                // Driver poll method.
+    virtual int  SendCommand(const std::string &toSend);
 
     void   SetPollRate(Uint32 rate);    // Need to keep these as discrete
     Uint32 GetPollRate();               // functions because of threading.

@@ -316,7 +316,7 @@ bool StringToIp(std::string const& toConvert, Uint32 &result)
 }
 
 ///
-/// \brief String To Integer
+/// \brief Ip To String
 ///
 /// Attempts to convert the passed string into an integer.
 ///

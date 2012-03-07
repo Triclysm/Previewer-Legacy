@@ -61,6 +61,11 @@ void TCDriver::Poll()
 
 }
 
+int  TCDriver::SendCommand(const std::string &toSend)
+{
+    return 0;
+}
+
 void TCDriver::SetPollRate(Uint32 rate)
 {
     driverRate = rate;
