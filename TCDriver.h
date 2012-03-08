@@ -35,6 +35,17 @@
 #define TC_DRIVER_TYPE_ASYNCHRONOUS 0x00
 #define TC_DRIVER_TYPE_SYNCHRONOUS  0x01
 
+
+///
+/// \brief Triclysm Driver Base Object
+///
+/// This class is the base for any driver objects.  Drivers should be loaded
+/// using the SetDriver function declared in main.h.
+///
+/// \remarks This class also uses a TCCube object to hold/provide the animation's state.
+///
+/// \see SetDriver
+///
 class TCDriver
 {
   public:
@@ -49,9 +60,9 @@ class TCDriver
     Uint32 GetPollRate();               // functions because of threading.
     Uint8  GetDriverType();             // Gets the driver type.
 
-  private:
-    Uint8  driverType;  // Type of driver (see TC_DRIVER_TYPE_ defines).
-    Uint32 driverRate;  // Poll rate for asynchronous drivers.
+  protected:
+    Uint8  driverType;  ///< Type of driver (see TC_DRIVER_TYPE_ defines).
+    Uint32 driverRate;  ///< Poll rate for asynchronous drivers.
 };
 
 
