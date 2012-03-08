@@ -6,7 +6,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                     *
  *  This file contains the definition of the TCAnim class as implemented by the        *
- *  TCAnim.cpp sourcefile.  This class is the base for any cube animation objects,     *
+ *  TCAnim.cpp source file.  This class is the base for any cube animation objects,    *
  *  and should be inhereted for implementing any animations.  This class also uses     *
  *  the TCCube class to hold the animation's current cube state.                       *
  *                                                                                     *
@@ -43,10 +43,13 @@ typedef unsigned long int ulint;    ///< Used to store 24-bit color values.  The
 ///
 /// \brief Triclysm Animation Base Object
 ///
-/// This class is the base for any cube animation objects, and is used in conjunction
-/// with the TCAnimHandler object class.
+/// This class is the base for any cube animation objects.  Animations should be loaded
+/// using the SetAnim function declared in main.h.
 ///
-/// \remarks This class also uses a TCCube object to hold/provide the animation's state.
+/// \remarks This class uses TCCube objects to hold/provide the animation's state for
+///          each different color.
+///
+/// \see SetAnim
 ///
 class TCAnim    // Base Animation Class
 {

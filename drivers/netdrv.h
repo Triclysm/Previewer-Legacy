@@ -1,3 +1,29 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *                           Network Driver Object Header File                         *
+ *                                      TRICLYSM                                       *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *  This file contains the definition of the TCDriver_netdrv class as implemented by   *
+ *  the netdrv.cpp source file.  This class inherets the base driver class (TCDriver), *
+ *  allowing the network driver to be registered using the global SetDriver function.  *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *  Copyright (C) 2011 Brandon Castellano, Ryan Mantha. All rights reserved.           *
+ *  Triclysm is provided under the BSD-2-Clause license. This program uses the SDL     *
+ *  (Simple DirectMedia Layer) library, and the Lua scripting language. See the        *
+ *  included LICENSE file or <http://www.triclysm.com/> for more details.              *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+///
+/// \file  netdrv.h
+/// \brief This file contains the definition of the TCDriver_netdrv class as implemented
+///        by the netdrv.cpp source file, as well as definitions of other relevant
+///        functions to connect to networked devices.
+///
 
 #pragma once
 #ifndef TC_DRIVER_NETDRV_
@@ -18,16 +44,22 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     Uint16 listenPort, unsigned int attempts = 3, Uint32 attempt_len_ms = 100);
 bool netdrv_ConnectCube(unsigned int cubeNum, Uint32 pollRate);
 
+
+///
+/// \brief Cube Info Data Structure
+///
+/// Used to hold all relevant information for a given LED cube.
+///
 struct cubeInfo
 {
   public:
-    Uint16      cube_listenport;
-    Uint16      localport;
-    Uint32      cube_ip;
-    Uint8       cube_ffmt;
-    Uint8       cube_color;
-    byte        cube_size[3];
-    std::string cube_name;
+    Uint16      cube_listenport;    ///< The port that the cube listens on.
+    Uint16      localport;          ///< The port that Triclysm should listen on.
+    Uint32      cube_ip;            ///< The cube IP address (in network byte order).
+    Uint8       cube_ffmt;          ///< The cube frame format.
+    Uint8       cube_color;         ///< The number of colours the cube supports.
+    byte        cube_size[3];       ///< Number of cube voxels in each dimension.
+    std::string cube_name;          ///< The name of the remote cube.
 };
 
 extern std::vector<cubeInfo> cubeList;

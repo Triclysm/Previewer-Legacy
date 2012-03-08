@@ -1,3 +1,33 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *                           Network Driver Object Source Code                         *
+ *                                      TRICLYSM                                       *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *  This file contains the implementation of the TCDriver_netdrv class as defined by   *
+ *  the netdrv.h header file.  This class inherets the base driver class (TCDriver),   *
+ *  allowing the network driver to be registered using the global SetDriver function.  *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                     *
+ *  Copyright (C) 2011 Brandon Castellano, Ryan Mantha. All rights reserved.           *
+ *  Triclysm is provided under the BSD-2-Clause license. This program uses the SDL     *
+ *  (Simple DirectMedia Layer) library, and the Lua scripting language. See the        *
+ *  included LICENSE file or <http://www.triclysm.com/> for more details.              *
+ *                                                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+///
+/// \file  netdrv.cpp
+/// \brief This file contains the implementation of the TCDriver_netdrv class as defined
+///        by the netdrv.h header file.
+///
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                               PREPROCESSOR DIRECTIVES                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #include <string>
 #include <list>
 #include "SDL.h"
@@ -7,6 +37,17 @@
 
 #include "../main.h"
 #include "../console.h"
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                  GLOBAL VARIABLES                                   *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+std::vector<cubeInfo> cubeList; ///< Holds all devices found by the `netdrv list` command.
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                              CLASS METHOD DEFINITIONS                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 TCDriver_netdrv::TCDriver_netdrv(cubeInfo &cube_params, bool &connected, Uint32 rate)
     : TCDriver(rate)
@@ -124,8 +165,25 @@ void TCDriver_netdrv::Poll()
 }
 
 
-std::vector<cubeInfo> cubeList;
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                FUNCTION DEFINITIONS                                 *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+///
+/// \brief Parse Cube Parameters
+///
+/// Extracts all relevant cube parameters from the passed string, and attempts to parse
+/// and place the data into the passed cubeInfo data structure.
+///
+/// \param cubeParams String obtained from the remote device containing the relevant
+///                   cube parameters.
+/// \param tmpCube    Data structure to place all parsed parameters into.
+///
+/// \returns True if the passed cubeInfo struct is valid, false if some parameters could
+///          not be parsed or were missing (and the struct should be considered invalid).
+///
+/// \see netdrv_GetCubeList | TCDriver_netdrv
+///
 bool netdrv_ParseCubeParams(std::string const& cubeParams, cubeInfo &tmpCube)
 {
     std::string::size_type  tokenStart,
@@ -171,7 +229,24 @@ bool netdrv_ParseCubeParams(std::string const& cubeParams, cubeInfo &tmpCube)
 }
 
 
-
+///
+/// \brief Get Cube List
+///
+/// Deletes all cubeInfo structs in the current cubeList, and re-obtains all device 
+/// information from the network on the passed address information.
+///
+/// \param cube_ip         Integer representing the IP address (in network byte order).
+/// \param cube_listenport The port that the remote devices are listening on.
+/// \param localport       The port Triclysm should listen on for a response.
+/// \param attempts        The number of attempts that should be made to get device info.
+/// \param attempt_len_ms  The maximum time (in milliseconds) each attempt should wait
+///                        to receive a response from a remote device.
+///
+/// \remarks If no remote devices can be found, ensure that the port/IP information is
+///          correct, or try to increase the number of attempts or attempt length.
+///
+/// \see cubeList | netdrv_ParseCubeParams | netdrv_ConnectCube | TCDriver_netdrv
+///
 void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     Uint16 localport, unsigned int attempts, Uint32 attempt_len_ms)
 {
@@ -246,6 +321,25 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     SDLNet_UDP_Close(sckRecv);
 }
 
+
+///
+/// \brief Connect To Cube
+///
+/// Attempts to connect to the passed cube held within the global cubeList object.  If the
+/// connection is successful, the respective driver is loaded.
+///
+/// \param cube_num The cube number to connect to (matching up to the result shown after
+///                 running the `netdrv list` command).
+/// \param pollRate The poll rate of the driver in milliseconds (set to zero to synchronize
+///                 the driver to the global tickrate).
+///
+/// \returns True if the cube was connected to (and loaded as a driver), false otherwise.
+///
+/// \remarks Relevant information will be printed to the Triclysm console before this
+///          function returns false.
+///
+/// \see netdrv_GetCubeList | TCDriver_netdrv | SetDriver | cubeList
+///
 bool netdrv_ConnectCube(unsigned int cubeNum, Uint32 pollRate)
 {
     TCDriver *toLoad    = NULL;
