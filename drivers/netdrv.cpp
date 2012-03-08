@@ -236,7 +236,7 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     SDLNet_UDP_Close(sckRecv);
 }
 
-bool netdrv_ConnectCube(unsigned int cubeNum)
+bool netdrv_ConnectCube(unsigned int cubeNum, Uint32 pollRate)
 {
     TCDriver *toLoad    = NULL;
     bool     connStatus = false;
@@ -256,7 +256,7 @@ bool netdrv_ConnectCube(unsigned int cubeNum)
 
     // attempt to load that driver.
     cubeNum--;  // correct for 0-based index.
-    toLoad = new TCDriver_netdrv(cubeList[cubeNum], connStatus, 0);
+    toLoad = new TCDriver_netdrv(cubeList[cubeNum], connStatus, pollRate);
     if (connStatus == true)
     {
         SetDriver(toLoad);

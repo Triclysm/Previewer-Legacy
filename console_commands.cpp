@@ -590,7 +590,7 @@ void netdrv(vectStr const& argv)
             }
             else
             {
-                netdrv_ConnectCube(cubeNum);
+                netdrv_ConnectCube(cubeNum, 50);
             }
         }
         else    // Else, manual connect by IP/Port.

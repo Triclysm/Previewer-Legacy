@@ -16,7 +16,7 @@
 
 void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     Uint16 listenPort, unsigned int attempts = 3, Uint32 attempt_len_ms = 100);
-bool netdrv_ConnectCube(unsigned int cubeNum);
+bool netdrv_ConnectCube(unsigned int cubeNum, Uint32 pollRate);
 
 struct cubeInfo
 {
