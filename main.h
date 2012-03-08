@@ -33,8 +33,7 @@
 #ifndef TC_MAIN_
 #define TC_MAIN_
 
-#include "TCAnim.h"     // The Triclysm Animation Object.
-#include "TCDriver.h"   // The Triclysm Driver Object.
+#include "TCAnim.h"     // The Triclysm Animation Library.
 #include "SDL.h"        // The main SDL include file.
 
 #define TC_NAME                "Triclysm"
@@ -56,12 +55,10 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 extern TCAnim       *currAnim;      // Pointer to the current animation.
-extern TCDriver     *currDriver;    // Pointer to the current driver.
 extern bool          showFps,       // True to render the FPS counter, false to hide it.
                      showCube,      // True to render the actual cube, false to hide it.
                      showAxis,      // True to render the coordinate axes, false to hide.
                      runAnim,       // True to update the current animation, false to stop.
-                     runDriver,     // True to run the current driver, false to "unload" it.
                      runProgram,    // Set to false to quit the program.
                      nullAnim;      // Set to true if the current animation is blank.
 
@@ -89,16 +86,12 @@ Uint32 GetTickRate();                           // Gets the current tick rate.
 void   SetCubeSize(byte sx, byte sy, byte sz);  // Updates the current cube size.
 byte   *GetCubeSize();                          // Returns an array of the cube size.
 void   SetAnim(TCAnim *newAnim);                // Sets the current animation.
-void   SetDriver(TCDriver *newDriver);          // Sets the current driver.
 
 // Thread specific functions:
-int  UpdateAnim(void *unused);   // Updates the current animation at the current rate.
-int  UpdateDriver(void *unused); // Updates the current driver at the driver poll rate.
-bool InitThreads();              // Initializes the animation thread and mutex.
-void LockAnimMutex();            // Locks the animation mutex (for use with currAnim).
-void UnlockAnimMutex();          // Unlocks the animation mutex.
-void LockDriverMutex();          // Locks the driver mutex (for use with currDriver).
-void UnlockDriverMutex();        // Unlocks the driver mutex.
+int  UpdateAnim(void *unused);  // Updates the current animation at the current rate.
+bool InitAnimThread();          // Initializes the animation thread and mutex.
+void LockAnimMutex();           // Locks the animation mutex (for use with currAnim).
+void UnlockAnimMutex();         // Unlocks the animation mutex.
 
 
 #endif

@@ -28,7 +28,6 @@
 #include <vector>                   // Required to pass arguments to commands.
 #include <sstream>                  // Useful for creating strings or converting values.
 #include <cstring>                  // Required to use memcpy in the screenshot command.
-#include <list>
 
 #include "console.h"
 #include "events.h"
@@ -37,8 +36,6 @@
 #include "main.h"
 #include "TCAnim.h"
 #include "TCAnimLua.h"
-#include "SDL_net.h"
-#include "drivers/netdrv.h"
 
 typedef std::vector<std::string> vectStr;
 
@@ -516,145 +513,6 @@ void loadanim(vectStr const& argv)
     SetAnim(LuaAnimLoader(argv[0].c_str(), argv.size() - 1, argVals));
     // Finally, we delete the memory used for the argument values (if applicable).
     delete argVals;
-}
-
-void netdrv(vectStr const& argv)
-{
-    static bool   initSDLNet = false;
-    static Uint16 listenPort, broadcastPort;
-    static Uint32 broadcastIp;
-    if (!initSDLNet)
-    {
-        if (SDLNet_Init() < 0)
-        {
-            WriteOutput("Error - could not initialize SDLNet!");
-            fprintf(stderr, "SDLNet Error: %s\n", SDLNet_GetError());
-            initSDLNet = false;
-        }
-        else
-        {
-            WriteOutput("netdrv: Initialized SDL network library.");
-            initSDLNet = true;
-        }
-
-        // initialize default params
-        if (    !StringToIp  ("192.168.1.255", broadcastIp  )
-             || !StringToPort("2581",          broadcastPort)
-             || !StringToPort("2582",          listenPort   ) )
-        {
-            WriteOutput("netdrv: Error - could not convert default params.");
-            initSDLNet = false;
-        }
-    }
-    if (!initSDLNet) return;
-    if (!(argv.size() > 0 && argv.size() <= 3))
-    {
-        TC_Console_Error::WrongArgCount(argv.size(), 3);
-        return;
-    }
-
-    if (argv[0] == "list")
-    {
-        // populate list.
-        netdrv_GetCubeList(broadcastIp, broadcastPort, listenPort, 2, 300);
-        // Output list details.
-        for (unsigned int i = 0; i < cubeList.size(); i++)
-        {
-            std::string cubeInfo = " ",
-                        tmpIp;
-            if (!IpToString(cubeList[i].cube_ip, tmpIp)) continue;
-            cubeInfo += (char)(i+1+'0');
-            cubeInfo += ") ";
-            cubeInfo += cubeList[i].cube_name;
-            cubeInfo += ", ";
-            cubeInfo += (char)cubeList[i].cube_size[0] + '0'; cubeInfo += " x ";
-            cubeInfo += (char)cubeList[i].cube_size[1] + '0'; cubeInfo += " x ";
-            cubeInfo += (char)cubeList[i].cube_size[2] + '0';
-            cubeInfo += ", Colors = ";
-            cubeInfo += (char)cubeList[i].cube_color + '0';
-            cubeInfo += ", IP = ";
-            cubeInfo += tmpIp;
-            WriteOutput(cubeInfo);
-        }
-
-    }
-    else if ((argv[0] == "c" || argv[0] == "connect") && argv.size() > 1)
-    {
-        //
-        if (argv.size() == 2)
-        {
-            int cubeNum;
-            if (!StringToInt(argv[1], cubeNum) || cubeNum < 0)
-            {
-                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
-            }
-            else
-            {
-                netdrv_ConnectCube(cubeNum, 50);
-            }
-        }
-        else    // Else, manual connect by IP/Port.
-        {
-            cubeInfo tmpCubeInfo;
-
-            Uint32 pollRate;
-            bool driverInit = false;
-            int  tmpRes;
-            
-            if (argv.size() == 4 && StringToInt(argv[3], tmpRes) && tmpRes > 0)
-            {
-                pollRate = tmpRes;  // Asynchronous
-            }
-            else
-            {
-                pollRate = 0;       // Synchronous
-            }
-
-            if (!StringToIp(argv[1], tmpCubeInfo.cube_ip))
-            {
-                WriteOutput("netdrv: Error - Invalid IP address!");
-                return;
-            }
-            if (!StringToPort(argv[2], tmpCubeInfo.cube_listenport))
-            {
-                WriteOutput("netdrv: Error - Invalid port!");
-                return;
-            }
-
-            // Need to get frame format from cube...
-
-            if (driverInit)
-            {
-//                SetDriver(toLoad);
-            }
-        }
-    }
-    else if (argv[0] == "disconnect")
-    {
-        SetDriver(NULL);
-    }
-    else if (argv[0] == "cmd" && argv.size() == 2)
-    {
-        int numSent = 0;
-        // Prepare to send command to connected cube.
-        LockDriverMutex();
-        if (currDriver != NULL)
-        {
-            numSent = currDriver->SendCommand(argv[1]);
-        }
-        else
-        {
-            WriteOutput("netdrv: Error - current driver not found! (try to connect again)");
-        }
-        UnlockDriverMutex();
-    }
-    // 
-    // netdrv (l)ist          // List cube (required to use below
-    // netdrv (c)onnect #     // Connect manual by list ID
-    // netdrv (c)onnect # #   // Connect manual by IP/Port
-    // netdrv (c)onnect # # # // Connect manual by IP/Port/Tickrate
-    // netdrv cmd 
-    // netdrv (d)isconnect    // 
 }
 
 void loadscript(vectStr const& argv)
@@ -1167,9 +1025,6 @@ void RegisterCommands()
         "Loads a script from a file. Usage:\n\n"
         "    loadscript filename\n\n"
         "Where filename is the name of the script (including extension, usually .tcs)."));
-
-    cmdList.push_back(new ConsoleCommand("netdrv", netdrv,
-        ""));
 
     cmdList.push_back(new ConsoleCommand("quality", quality,
         "Changes the polygon count of the individual LED spheres making up the cube. "
