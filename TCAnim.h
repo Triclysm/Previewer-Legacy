@@ -26,8 +26,8 @@
 ///
 
 #pragma once
-#ifndef TC_ANIM_BASE_
-#define TC_ANIM_BASE_
+#ifndef TC_ANIM_
+#define TC_ANIM_
 
 #include "TCCube.h"
 
