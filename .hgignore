@@ -5,3 +5,8 @@ Release/*
 *.user
 glob:.cproject
 glob:.project
+*.sdf
+*.sln
+*.suo
+*.vcxproj
+*.filters
