@@ -522,7 +522,7 @@ void netdrv(vectStr const& argv)
 {
     static bool   initSDLNet = false;
     static Uint16 listenPort, broadcastPort;
-    static Uint32 broadcastIp;
+    static Uint32 broadcastIp, pollRate = 0;
     if (!initSDLNet)
     {
         if (SDLNet_Init() < 0)
@@ -547,106 +547,243 @@ void netdrv(vectStr const& argv)
         }
     }
     if (!initSDLNet) return;
-    if (!(argv.size() > 0 && argv.size() <= 3))
-    {
-        TC_Console_Error::WrongArgCount(argv.size(), 3);
-        return;
-    }
 
-    if (argv[0] == "list")
+    if (argv.size() == 0)
+    {
+        // Print current parameters.
+        std::string toWrite, tmpVal;
+        std::stringstream tempSS;
+        toWrite = "netdrv: Driver Poll Type  = ";
+        if (pollRate > 0)
+        {
+            toWrite += "Asynchronous";
+            tempSS << " (" << (int)pollRate << " ms)";
+            toWrite += tempSS.str();
+        }
+        else
+        {
+            toWrite += "Synchronous";
+        }
+        WriteOutput(toWrite);
+        toWrite = "netdrv: Broadcast Address = ";
+        IpToString(broadcastIp, tmpVal);
+        toWrite += tmpVal;
+        PortToString(broadcastPort, tmpVal);
+        toWrite += ":";
+        toWrite += tmpVal;
+        WriteOutput(toWrite);
+        toWrite = "netdrv: UDP Listen Port   = ";
+        PortToString(listenPort, tmpVal);
+        toWrite += tmpVal;
+        WriteOutput(toWrite);
+        WriteOutput("netdrv: - - - - - - - - - - - - - - - - - - - - - - - -");
+        // TODO: Get & set attempt length / retries.
+        // TODO: Get information of connected cube.
+        if (currDriver != NULL)
+        {
+            tempSS.clear();
+            WriteOutput("netdrv: Driver Status     = Connected");
+            tempSS << "netdrv: Driver Poll Rate  = " << (int)currDriver->GetPollRate() << "ms";
+            WriteOutput(tempSS.str());
+        }
+        else
+        {
+            WriteOutput("netdrv: Driver Status     = Disconnected");
+        }
+    }
+    else if (argv[0] == "s" || argv[0] == "set")
+    {
+        if (argv.size() == 1)
+        {
+            // List parameters.
+            WriteOutput("netdrv: Valid settings are bcastip, listenport, cubeport, and pollrate "
+                "(e.g. `netdrv set bcastip 192.168.1.255` or `netdrv set listenport 2000`). "
+                "Note that pollrate is measured in milliseconds.");
+        }
+        else if (argv.size() == 2)
+        {
+            WriteOutput("netdrv: Missing parameter to set value to!");
+        }
+        // if argv.size() is 3, set vals, otherwise print vals to set.
+        else if (argv.size() == 3)
+        {
+            if (argv[1] == "bcastip")
+            {
+                Uint32 tmpResult;
+                // Convert argv[2] to IP, set, and print.
+                if (!StringToIp(argv[2], tmpResult))
+                {
+                    WriteOutput("netdrv: Invalid IP address!");
+                }
+                else broadcastIp = (Uint32)tmpResult;
+            }
+            else if (argv[1] == "listenport")
+            {
+                Uint16 tmpResult;
+                // Convert argv[2] to IP, set, and print.
+                if (!StringToPort(argv[2], tmpResult))
+                {
+                    WriteOutput("netdrv: Invalid port!");
+                }
+                else listenPort = (Uint32)tmpResult;
+            }
+            else if (argv[1] == "cubeport")
+            {
+                Uint16 tmpResult;
+                // Convert argv[2] to IP, set, and print.
+                if (!StringToPort(argv[2], tmpResult))
+                {
+                    WriteOutput("netdrv: Invalid port!");
+                }
+                else broadcastPort = (Uint32)tmpResult;
+            }
+            else if (argv[1] == "pollrate")
+            {
+                int tmpResult;
+                // Convert argv[2] to IP, set, and print.
+                if (!StringToInt(argv[2], tmpResult) || tmpResult < 0)
+                {
+                    WriteOutput("netdrv: Invalid poll rate!");
+                }
+                else pollRate = (Uint32)tmpResult;
+                
+            }
+            else
+            {
+                WriteOutput("netdrv: Unrecognized setting name.");
+            }
+        }
+        else
+        {
+            WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+        }
+    }
+    else if (argv[0] == "list")
     {
         // populate list.
         netdrv_GetCubeList(broadcastIp, broadcastPort, listenPort, 2, 300);
         // Output list details.
-        for (unsigned int i = 0; i < cubeList.size(); i++)
+        if (cubeList.size() > 0)
         {
-            std::string cubeInfo = " ",
-                        tmpIp;
-            if (!IpToString(cubeList[i].cube_ip, tmpIp)) continue;
-            cubeInfo += (char)(i+1+'0');
-            cubeInfo += ") ";
-            cubeInfo += cubeList[i].cube_name;
-            cubeInfo += ", ";
-            cubeInfo += (char)cubeList[i].cube_size[0] + '0'; cubeInfo += " x ";
-            cubeInfo += (char)cubeList[i].cube_size[1] + '0'; cubeInfo += " x ";
-            cubeInfo += (char)cubeList[i].cube_size[2] + '0';
-            cubeInfo += ", Colors = ";
-            cubeInfo += (char)cubeList[i].cube_color + '0';
-            cubeInfo += ", IP = ";
-            cubeInfo += tmpIp;
-            WriteOutput(cubeInfo);
+            for (unsigned int i = 0; i < cubeList.size(); i++)
+            {
+                std::string cubeInfo = " ",
+                            tmpIp;
+                if (!IpToString(cubeList[i].cube_ip, tmpIp)) continue;
+                cubeInfo += (char)(i+1+'0');
+                cubeInfo += ") ";
+                cubeInfo += cubeList[i].cube_name;
+                cubeInfo += ", ";
+                cubeInfo += (char)cubeList[i].cube_size[0] + '0'; cubeInfo += " x ";
+                cubeInfo += (char)cubeList[i].cube_size[1] + '0'; cubeInfo += " x ";
+                cubeInfo += (char)cubeList[i].cube_size[2] + '0';
+                cubeInfo += ", Colors = ";
+                cubeInfo += (char)cubeList[i].cube_color + '0';
+                cubeInfo += ", IP = ";
+                cubeInfo += tmpIp;
+                WriteOutput(cubeInfo);
+            }
+        }
+        else
+        {
+            WriteOutput("netdrv: Could not find any LED cubes on the network!");
         }
 
     }
-    else if ((argv[0] == "c" || argv[0] == "connect") && argv.size() > 1)
+    else if ((argv[0] == "c" || argv[0] == "connect") && (argv.size() == 2 || argv.size() == 3))
     {
-        //
-        if (argv.size() == 2)
+        // netdrv c 1 
+        // netdrv connect 1 10
+        Uint32 pollRate = 0;
+        int    cubeNum;
+        // Get polling rate (if required).
+        if (argv.size() == 3)
         {
-            int cubeNum;
-            if (!StringToInt(argv[1], cubeNum) || cubeNum < 0)
+            if (!StringToInt(argv[2], cubeNum) || cubeNum < 0)
             {
                 WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
             }
             else
             {
-                netdrv_ConnectCube(cubeNum, 50);
+                pollRate = (Uint32)cubeNum;
             }
         }
-        else    // Else, manual connect by IP/Port.
+        // Get the cube ID, and connect if it's a valid integer.
+        if (!StringToInt(argv[1], cubeNum) || cubeNum < 0)
         {
-            cubeInfo tmpCubeInfo;
-
-            Uint32 pollRate;
-            bool driverInit = false;
-            int  tmpRes;
-            
-            if (argv.size() == 4 && StringToInt(argv[3], tmpRes) && tmpRes > 0)
-            {
-                pollRate = tmpRes;  // Asynchronous
-            }
-            else
-            {
-                pollRate = 0;       // Synchronous
-            }
-
-            if (!StringToIp(argv[1], tmpCubeInfo.cube_ip))
-            {
-                WriteOutput("netdrv: Error - Invalid IP address!");
-                return;
-            }
-            if (!StringToPort(argv[2], tmpCubeInfo.cube_listenport))
-            {
-                WriteOutput("netdrv: Error - Invalid port!");
-                return;
-            }
-
-            // Need to get frame format from cube...
-
-            if (driverInit)
-            {
-//                SetDriver(toLoad);
-            }
+            WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+        }
+        else
+        {
+            netdrv_ConnectCube((unsigned int)cubeNum, 50);
         }
     }
     else if (argv[0] == "disconnect")
     {
         SetDriver(NULL);
     }
-    else if (argv[0] == "cmd" && argv.size() == 2)
+    else if (argv[0] == "cmd")
     {
-        int numSent = 0;
-        // Prepare to send command to connected cube.
-        LockDriverMutex();
-        if (currDriver != NULL)
+        if (argv.size() == 1)
         {
-            numSent = currDriver->SendCommand(argv[1]);
+            WriteOutput("netdrv: Valid commands are rate "
+                "(e.g. `netdrv cmd rate 75`). "
+                "Note that rate is measured in Hertz (Hz).");
+        }
+        else if (argv.size() == 2)
+        {
+            WriteOutput("netdrv: Missing command parameter!");
         }
         else
         {
-            WriteOutput("netdrv: Error - current driver not found! (try to connect again)");
+            if (argv[1] == "rate")
+            {
+                if (argv.size() != 3)
+                {
+                    WriteOutput(TC_Console_Error::INVALID_NUM_ARGS_MORE);
+                    return;
+                }
+                int numSent = 0;
+                std::string cmdStr;
+                // Prepare to send command to connected cube.
+                LockDriverMutex();
+                if (currDriver != NULL)
+                {
+                    int newRate;
+                    if (!StringToInt(argv[2], newRate) || newRate < 0 || newRate > 255)
+                    {
+                        WriteOutput("netdrv: Invalid refresh rate (valid values are 0-255).");
+                    }
+                    else
+                    {
+                        cmdStr = "*TR*";
+                        cmdStr += (char)newRate;
+                        cmdStr += "*TE*";
+                        // TODO: Look at return value (held in numSent) to determine
+                        // if the packets were sent out okay.
+                        numSent = currDriver->SendCommand(cmdStr);
+                    }
+                }
+                else
+                {
+                    WriteOutput("netdrv: Error - current driver not found! (try to connect again)");
+                }
+                UnlockDriverMutex();
+            }
+            else if (argv[1] == "freqsweep")
+            {
+                if (argv.size() != 5)
+                {
+                    TC_Console_Error::WrongArgCount(argv.size(), 5);
+                    return;
+                }
+                // TODO: Implement frequency sweep command.
+            }
+            else
+            {
+                WriteOutput("netdrv: Unrecognized command name or invalid number of parameters.");
+            }
         }
-        UnlockDriverMutex();
     }
     // 
     // netdrv (l)ist          // List cube (required to use below

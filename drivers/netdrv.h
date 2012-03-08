@@ -35,8 +35,6 @@ extern std::vector<cubeInfo> cubeList;
 class TCDriver_netdrv : public TCDriver
 {
   public:
-    // This should ask for an IP, port, asynch/synch.
-    // ALSO DO NEGOTIATION HERE - this is what the &connected flag is for!!!!!
     TCDriver_netdrv(cubeInfo &cube_params, bool &connected, Uint32 rate = 0);
     ~TCDriver_netdrv();
     int  SendCommand(const std::string &toSend);

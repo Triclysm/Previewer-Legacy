@@ -126,6 +126,50 @@ void TCDriver_netdrv::Poll()
 
 std::vector<cubeInfo> cubeList;
 
+bool netdrv_ParseCubeParams(std::string const& cubeParams, cubeInfo &tmpCube)
+{
+    std::string::size_type  tokenStart,
+                            tokenEnd;
+    std::string             tmpParam;
+
+    // Attempt to parse all parameters.
+    // Parse *PC* (Cube Colours)
+    if (std::string::npos == (tokenStart = cubeParams.find("*PC*"))) return false;
+    if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) return false;
+    // Check that they're spaced 1 char apart (plus token length).
+    if ((tokenEnd - tokenStart) != (5)) return false; // 5 = 1 + 4
+    // Finally, get the # of colors (if it's valid).
+    tmpCube.cube_color = (Uint8)cubeParams[tokenStart + 4] - '0';
+    if (!(tmpCube.cube_color == 0 || tmpCube.cube_color == 1 || tmpCube.cube_color == 3)) return false;
+
+    // Parse *PF* (Cube Frame Format)
+    if (std::string::npos == (tokenStart = cubeParams.find("*PF*"))) return false;
+    if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) return false;
+    // Check that they're spaced 1 char apart (plus token length).
+    if ((tokenEnd - tokenStart) != (5)) return false; // 5 = 1 + 4
+    // Finally, get the frame format.
+    tmpCube.cube_ffmt = (Uint8)cubeParams[tokenStart + 4];
+
+    // Parse *PN* (Cube Name)
+    if (std::string::npos == (tokenStart = cubeParams.find("*PN*"))) return false;
+    if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) return false;
+    // Get the cube name.
+    tokenStart = tokenStart + 4;    // Add token length.
+    tmpCube.cube_name = cubeParams.substr(tokenStart, tokenEnd - tokenStart);
+
+    // Parse *PS* (Cube Size)
+    if (std::string::npos == (tokenStart = cubeParams.find("*PS*"))) return false;
+    if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) return false;
+    // Check that they're spaced 3 chars apart (plus token length).
+    if ((tokenEnd - tokenStart) != (7)) return false; // 7 = 3 + 4
+    // Finally, get the frame format.
+    tmpCube.cube_size[0] = (byte)cubeParams[tokenStart + 4] - '0';
+    tmpCube.cube_size[1] = (byte)cubeParams[tokenStart + 5] - '0';
+    tmpCube.cube_size[2] = (byte)cubeParams[tokenStart + 6] - '0';
+    // So, if we got here, everything was parsed okay, so we can return true.
+    return true;
+}
+
 
 
 void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
@@ -159,73 +203,35 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
         udpPkt->data         = (Uint8*)cubeParams.c_str();
         udpPkt->len          = cubeParams.length();
         SDLNet_UDP_Send(sckSend, -1, udpPkt);
-
-/////////////// TO DO:  Move the below token detection routine into a function,
-///////////////         which returns a cubeInfo object (similar to the TCDriver_netdrv constructor).
-
+        // Attempt to receive packets in 1ms intervals for the specified length.
         startTime = SDL_GetTicks();
         while ((SDL_GetTicks() - startTime) < attempt_len_ms)
         {
             if (SDLNet_UDP_Recv(sckRecv, pktPrm))
             {
-                int tokenStart,
-                                       tokenEnd;
-                cubeInfo               tmpCube;
-                std::string            tmpParam;
+                cubeInfo tmpCube;
                 // Get string from packet.
                 cubeParams = std::string((const char*)pktPrm->data, pktPrm->len);
-                // Attempt to parse all parameters.
-                // Parse *PC* (Cube Colours)
-                if (std::string::npos == (tokenStart = cubeParams.find("*PC*"))) break;
-                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
-                // Check that they're spaced 1 char apart (plus token length).
-                if ((tokenEnd - tokenStart) != (5)) break; // 5 = 1 + 4
-                // Finally, get the # of colors (if it's valid).
-                tmpCube.cube_color = (Uint8)cubeParams[tokenStart + 4] - '0';
-                if (!(tmpCube.cube_color == 0 || tmpCube.cube_color == 1 || tmpCube.cube_color == 3)) break;
-
-                // Parse *PF* (Cube Frame Format)
-                if (std::string::npos == (tokenStart = cubeParams.find("*PF*"))) break;
-                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
-                // Check that they're spaced 1 char apart (plus token length).
-                if ((tokenEnd - tokenStart) != (5)) break; // 5 = 1 + 4
-                // Finally, get the frame format.
-                tmpCube.cube_ffmt = (Uint8)cubeParams[tokenStart + 4];
-
-                // Parse *PN* (Cube Name)
-                if (std::string::npos == (tokenStart = cubeParams.find("*PN*"))) break;
-                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
-                // Get the cube name.
-                tokenStart = tokenStart + 4;    // Add token length.
-                tmpCube.cube_name = cubeParams.substr(tokenStart, tokenEnd - tokenStart);
-
-                // Parse *PS* (Cube Size)
-                if (std::string::npos == (tokenStart = cubeParams.find("*PS*"))) break;
-                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
-                // Check that they're spaced 3 chars apart (plus token length).
-                if ((tokenEnd - tokenStart) != (7)) break; // 7 = 3 + 4
-                // Finally, get the frame format.
-                tmpCube.cube_size[0] = (byte)cubeParams[tokenStart + 4] - '0';
-                tmpCube.cube_size[1] = (byte)cubeParams[tokenStart + 5] - '0';
-                tmpCube.cube_size[2] = (byte)cubeParams[tokenStart + 6] - '0';
-
-                // Finally, if we get here, add the remaining packet parameters to the
-                // temporary cube, and we can then add it to the list.
+                // Attempt to parse the string as the cube information.
+                if (!netdrv_ParseCubeParams(cubeParams, tmpCube)) break;
+                // If we get here, the string was good, so add the remaining packet
+                // parameters to the temporary cube.
                 tmpCube.cube_listenport = cube_listenport;
                 tmpCube.localport       = localport;
                 tmpCube.cube_ip = udpPkt->address.host;
+                // Finally, if the cube is not a duplicate, we can add it to the cubeList.
                 bool isDuplicate = false;
                 for (unsigned int i = 0; i < cubeList.size(); i++)
                 {
                     // They are a match if all params agree.
-                    if (   cubeList[i].cube_listenport == tmpCube.cube_listenport
-                        && cubeList[i].localport       == tmpCube.localport
-                        && cubeList[i].cube_ip         == tmpCube.cube_ip
-                        && cubeList[i].cube_ffmt       == tmpCube.cube_ffmt
-                        && cubeList[i].cube_size[0]    == tmpCube.cube_size[0]
-                        && cubeList[i].cube_size[1]    == tmpCube.cube_size[1]
-                        && cubeList[i].cube_size[2]    == tmpCube.cube_size[2]
-                        && cubeList[i].cube_name       == tmpCube.cube_name         )
+                    if (    cubeList[i].cube_listenport == tmpCube.cube_listenport
+                         && cubeList[i].localport       == tmpCube.localport
+                         && cubeList[i].cube_ip         == tmpCube.cube_ip
+                         && cubeList[i].cube_ffmt       == tmpCube.cube_ffmt
+                         && cubeList[i].cube_size[0]    == tmpCube.cube_size[0]
+                         && cubeList[i].cube_size[1]    == tmpCube.cube_size[1]
+                         && cubeList[i].cube_size[2]    == tmpCube.cube_size[2]
+                         && cubeList[i].cube_name       == tmpCube.cube_name       )
                     {
                         isDuplicate = true;
                         break;
@@ -233,6 +239,7 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
                 }
                 if (!isDuplicate) cubeList.push_back(tmpCube);
             }
+            SDL_Delay(1);
         }
     }
     SDLNet_UDP_Close(sckSend);
@@ -263,7 +270,7 @@ bool netdrv_ConnectCube(unsigned int cubeNum, Uint32 pollRate)
     if (connStatus == true)
     {
         SetDriver(toLoad);
-        WriteOutput("netdrv: Connected to LED cube.");
+        WriteOutput("netdrv: Successfully connected to `" + cubeList[cubeNum].cube_name + "`");
         return true;
     }
     else

@@ -1,0 +1,32 @@
+echo "Sweeping frequency from 10 to 80 Hz."
+netdrv cmd rate 10
+wait -ms 500;
+netdrv cmd rate 12
+wait -ms 500;
+netdrv cmd rate 14
+wait -ms 500;
+netdrv cmd rate 16
+wait -ms 500;
+netdrv cmd rate 18
+wait -ms 500;
+netdrv cmd rate 20
+wait -ms 500;
+netdrv cmd rate 25
+wait -ms 500;
+netdrv cmd rate 30
+wait -ms 500;
+netdrv cmd rate 35
+wait -ms 500;
+netdrv cmd rate 40
+wait -ms 500;
+netdrv cmd rate 45
+wait -ms 500;
+netdrv cmd rate 50
+wait -ms 500;
+netdrv cmd rate 55
+wait -ms 500;
+netdrv cmd rate 60
+wait -ms 500;
+netdrv cmd rate 70
+wait -ms 500;
+netdrv cmd rate 80
