@@ -28,6 +28,7 @@
 #include <vector>                   // Required to pass arguments to commands.
 #include <sstream>                  // Useful for creating strings or converting values.
 #include <cstring>                  // Required to use memcpy in the screenshot command.
+#include <list>
 
 #include "console.h"
 #include "events.h"
@@ -520,7 +521,8 @@ void loadanim(vectStr const& argv)
 void netdrv(vectStr const& argv)
 {
     static bool   initSDLNet = false;
-    static Uint16 listenPort;// = StringToPort("2581");
+    static Uint16 listenPort, broadcastPort;
+    static Uint32 broadcastIp;
     if (!initSDLNet)
     {
         if (SDLNet_Init() < 0)
@@ -534,23 +536,62 @@ void netdrv(vectStr const& argv)
             WriteOutput("netdrv: Initialized SDL network library.");
             initSDLNet = true;
         }
+
+        // initialize default params
+        if (    !StringToIp  ("192.168.1.255", broadcastIp  )
+             || !StringToPort("2581",          broadcastPort)
+             || !StringToPort("2582",          listenPort   ) )
+        {
+            WriteOutput("netdrv: Error - could not convert default params.");
+            initSDLNet = false;
+        }
     }
     if (!initSDLNet) return;
     if (!(argv.size() > 0 && argv.size() <= 3))
     {
         TC_Console_Error::WrongArgCount(argv.size(), 3);
+        return;
     }
 
     if (argv[0] == "list")
     {
-        //
+        // populate list.
+        netdrv_GetCubeList(broadcastIp, broadcastPort, listenPort, 2, 300);
+        // Output list details.
+        for (unsigned int i = 0; i < cubeList.size(); i++)
+        {
+            std::string cubeInfo = " ",
+                        tmpIp;
+            if (!IpToString(cubeList[i].cube_ip, tmpIp)) continue;
+            cubeInfo += (char)(i+1+'0');
+            cubeInfo += ") ";
+            cubeInfo += cubeList[i].cube_name;
+            cubeInfo += ", ";
+            cubeInfo += (int)cubeList[i].cube_size[0]; cubeInfo += " x ";
+            cubeInfo += (int)cubeList[i].cube_size[1]; cubeInfo += " x ";
+            cubeInfo += (int)cubeList[i].cube_size[2];
+            cubeInfo += ", Colors = ";
+            cubeInfo += (char)cubeList[i].cube_color + '0';
+            cubeInfo += ", IP = ";
+            cubeInfo += tmpIp;
+            WriteOutput(cubeInfo);
+        }
+
     }
     else if ((argv[0] == "c" || argv[0] == "connect") && argv.size() > 1)
     {
         //
         if (argv.size() == 2)
         {
-
+            int cubeNum;
+            if (!StringToInt(argv[1], cubeNum) || cubeNum < 0)
+            {
+                WriteOutput(TC_Console_Error::INVALID_ARG_VALUE);
+            }
+            else
+            {
+                netdrv_ConnectCube(cubeNum);
+            }
         }
         else    // Else, manual connect by IP/Port.
         {

@@ -1,4 +1,5 @@
 #include <string>
+#include <list>
 #include "SDL.h"
 #include "SDL_net.h"
 
@@ -164,4 +165,108 @@ void TCDriver_netdrv::Poll()
 
     toSend += "*TE*";
     SendCommand(toSend);
+}
+
+std::vector<cubeInfo> cubeList;
+
+void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
+    Uint16 localport, unsigned int attempts, Uint32 attempt_len_ms)
+{
+    // Create a UDP socket on the given broadcast IP/port.
+    UDPsocket sckRecv, sckSend;
+    static UDPpacket *udpPkt = NULL,
+                     *pktPrm = NULL;
+
+    if (    !(sckRecv = SDLNet_UDP_Open(2582))//localport))
+         || !(sckSend = SDLNet_UDP_Open(2581))//))
+         || ((udpPkt == NULL) && !(udpPkt  = SDLNet_AllocPacket(4096)))
+         || ((pktPrm == NULL) && !(pktPrm  = SDLNet_AllocPacket(4096))) )
+    {
+        WriteOutput("netdrv: Fatal error - could not open socket or allocate packet.");
+        return;
+    }
+    // Now attempt to retrieve cube parameters.
+    Uint32       startTime;
+    std::string  cubeParams;
+    bool         gotParams = false;
+
+    cubeList.clear();   // We need to clear the existing list.
+
+    for (unsigned int i = 0; i < attempts; i++)
+    {
+        cubeParams = "*TP**TE*";
+        udpPkt->address.host = cube_ip;
+        udpPkt->address.port = cube_listenport;
+        udpPkt->data         = (Uint8*)cubeParams.c_str();
+        udpPkt->len          = cubeParams.length();
+        SDLNet_UDP_Send(sckSend, -1, udpPkt);
+
+        startTime = SDL_GetTicks();
+        while ((SDL_GetTicks() - startTime) < attempt_len_ms)
+        {
+            if (SDLNet_UDP_Recv(sckRecv, pktPrm))
+            {
+                int tokenStart,
+                                       tokenEnd;
+                cubeInfo               tmpCube;
+                std::string            tmpParam;
+                // Get string from packet.
+                cubeParams = std::string((const char*)pktPrm->data, pktPrm->len);
+                // Attempt to parse all parameters.
+                // Parse *PC* (Cube Colours)
+                if (std::string::npos == (tokenStart = cubeParams.find("*PC*"))) break;
+                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
+                // Check that they're spaced 1 char apart (plus token length).
+                if ((tokenEnd - tokenStart) != (5)) break; // 5 = 1 + 4
+                // Finally, get the # of colors (if it's valid).
+                tmpCube.cube_color = (Uint8)cubeParams[tokenStart + 4] - '0';
+                if (!(tmpCube.cube_color == 0 || tmpCube.cube_color == 1 || tmpCube.cube_color == 3)) break;
+
+                // Parse *PF* (Cube Frame Format)
+                if (std::string::npos == (tokenStart = cubeParams.find("*PF*"))) break;
+                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
+                // Check that they're spaced 1 char apart (plus token length).
+                if ((tokenEnd - tokenStart) != (5)) break; // 5 = 1 + 4
+                // Finally, get the frame format.
+                tmpCube.cube_ffmt = (Uint8)cubeParams[tokenStart + 4];
+
+                // Parse *PN* (Cube Name)
+                if (std::string::npos == (tokenStart = cubeParams.find("*PN*"))) break;
+                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
+                // Get the cube name.
+                tokenStart = tokenStart + 4;    // Add token length.
+                tmpCube.cube_name = cubeParams.substr(tokenStart, tokenEnd - tokenStart);
+
+                // Parse *PS* (Cube Size)
+                if (std::string::npos == (tokenStart = cubeParams.find("*PS*"))) break;
+                if (std::string::npos == (tokenEnd = cubeParams.find("*PE*", tokenStart))) break;
+                // Check that they're spaced 3 chars apart (plus token length).
+                if ((tokenEnd - tokenStart) != (7)) break; // 7 = 3 + 4
+                // Finally, get the frame format.
+                tmpCube.cube_size[0] = (byte)cubeParams[tokenStart + 4];
+                tmpCube.cube_size[1] = (byte)cubeParams[tokenStart + 5];
+                tmpCube.cube_size[2] = (byte)cubeParams[tokenStart + 6];
+
+                // Finally, if we get here, add the remaining packet parameters to the
+                // temporary cube, and we can then add it to the list.
+                tmpCube.cube_listenport = cube_listenport;
+                tmpCube.localport       = localport;
+                tmpCube.cube_ip = udpPkt->address.host;
+                cubeList.push_back(tmpCube);
+            }
+        }
+    }
+    SDLNet_UDP_Close(sckSend);
+    SDLNet_UDP_Close(sckRecv);
+}
+
+bool netdrv_ConnectCube(unsigned int cubeNum)
+{
+    if (cubeList.size() == 0)
+    {
+        WriteOutput("netdrv: Error - no cubes found. "
+                    "Please run `netdrv list` to scan for remote devices.");
+        return false;
+    }
+    return false;
 }

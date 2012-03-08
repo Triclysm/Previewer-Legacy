@@ -315,6 +315,22 @@ bool StringToIp(std::string const& toConvert, Uint32 &result)
     return true;
 }
 
+bool StringToPort(std::string const& toConvert, Uint16 &result)
+{
+    // Convert string to int.
+    Uint16 tmpPort;
+    int    portNum;
+    if (!StringToInt(toConvert, portNum) || portNum < 0 || portNum > 65535)
+    {
+        return false;
+    }
+    tmpPort = (Uint16)portNum;
+    // Finally, swap bytes and store in result.
+    result =  (tmpPort & 0x00FF) << 8;
+    result |= (tmpPort & 0xFF00) >> 8;
+    return true;
+}
+
 ///
 /// \brief Ip To String
 ///
@@ -347,6 +363,33 @@ bool IpToString(Uint32 const& toConvert, std::string &result)
 
     result = outVal.str();
     return true;
+}
+
+
+///
+/// \brief Port To String
+///
+/// Attempts to convert the passed string into an integer.
+///
+/// \param toConvert The string representing the integer value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool PortToString(Uint16 const& toConvert, std::string &result)
+{
+    Uint16 portNum;
+    std::stringstream outVal("");
+    // Swap byte order, convert to int & print.
+    portNum =  (toConvert & 0x00FF) << 8;
+    portNum |= (toConvert & 0xFF00) >> 8;
+    
+    outVal << (int)portNum;
+    result = outVal.str();
+    return true;
+
 }
 
 
