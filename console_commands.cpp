@@ -595,9 +595,9 @@ void netdrv(vectStr const& argv)
         }
         else    // Else, manual connect by IP/Port.
         {
-            Uint32 remoteIp,
-                   pollRate;
-            Uint16 remotePort;
+            cubeInfo tmpCubeInfo;
+
+            Uint32 pollRate;
             bool driverInit = false;
             int  tmpRes;
             
@@ -610,23 +610,18 @@ void netdrv(vectStr const& argv)
                 pollRate = 0;       // Synchronous
             }
 
-            if (!StringToIp(argv[1], remoteIp))
+            if (!StringToIp(argv[1], tmpCubeInfo.cube_ip))
             {
                 WriteOutput("netdrv: Error - Invalid IP address!");
                 return;
             }
-            //if (!StringToPort(argv[2], remotePort))
+            if (!StringToPort(argv[2], tmpCubeInfo.cube_listenport))
             {
                 WriteOutput("netdrv: Error - Invalid port!");
                 return;
             }
-/*            TCDriver *toLoad = new TCDriver_netdrv(
-                remoteIp,
-                remotePort,
-                2582,   // THIS NEEDS TO BE CONVERTED TO NETWORK BYTE ORDER!
-                driverInit,
-                pollRate                );*/
-            // Need to re-create alternative constructor.
+
+            // Need to get frame format from cube...
 
             if (driverInit)
             {
@@ -636,10 +631,6 @@ void netdrv(vectStr const& argv)
     }
     else if (argv[0] == "disconnect")
     {
-        // 
-        // Cleanup all static variables.
-
-        // Unload current driver
         SetDriver(NULL);
     }
     else if (argv[0] == "cmd" && argv.size() == 2)
@@ -653,7 +644,7 @@ void netdrv(vectStr const& argv)
         }
         else
         {
-            // driver not connected (??)
+            WriteOutput("netdrv: Error - current driver not found! (try to connect again)");
         }
         UnlockDriverMutex();
     }
