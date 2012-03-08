@@ -37,10 +37,7 @@ class TCDriver_netdrv : public TCDriver
   public:
     // This should ask for an IP, port, asynch/synch.
     // ALSO DO NEGOTIATION HERE - this is what the &connected flag is for!!!!!
-    TCDriver_netdrv(
-        Uint32 cube_ip,      Uint16 cube_port, Uint16 listen_port,
-        bool &connected,
-        Uint32 rate = 0);
+    TCDriver_netdrv(cubeInfo &cube_params, bool &connected, Uint32 rate = 0);
     ~TCDriver_netdrv();
     int  SendCommand(const std::string &toSend);
     bool RecvString(std::string &toRecv);
@@ -48,8 +45,6 @@ class TCDriver_netdrv : public TCDriver
     void Poll();
 
   private:
-    bool      GetFrameFormat();
-    bool      ParseCubeParams(const std::string &cube_params);
 
     IPaddress cubeIp;
     UDPsocket sckSend,

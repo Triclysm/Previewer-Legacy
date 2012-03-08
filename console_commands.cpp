@@ -567,9 +567,9 @@ void netdrv(vectStr const& argv)
             cubeInfo += ") ";
             cubeInfo += cubeList[i].cube_name;
             cubeInfo += ", ";
-            cubeInfo += (int)cubeList[i].cube_size[0]; cubeInfo += " x ";
-            cubeInfo += (int)cubeList[i].cube_size[1]; cubeInfo += " x ";
-            cubeInfo += (int)cubeList[i].cube_size[2];
+            cubeInfo += (char)cubeList[i].cube_size[0] + '0'; cubeInfo += " x ";
+            cubeInfo += (char)cubeList[i].cube_size[1] + '0'; cubeInfo += " x ";
+            cubeInfo += (char)cubeList[i].cube_size[2] + '0';
             cubeInfo += ", Colors = ";
             cubeInfo += (char)cubeList[i].cube_color + '0';
             cubeInfo += ", IP = ";
@@ -620,16 +620,17 @@ void netdrv(vectStr const& argv)
                 WriteOutput("netdrv: Error - Invalid port!");
                 return;
             }
-            TCDriver *toLoad = new TCDriver_netdrv(
+/*            TCDriver *toLoad = new TCDriver_netdrv(
                 remoteIp,
                 remotePort,
                 2582,   // THIS NEEDS TO BE CONVERTED TO NETWORK BYTE ORDER!
                 driverInit,
-                pollRate                );
+                pollRate                );*/
+            // Need to re-create alternative constructor.
 
             if (driverInit)
             {
-                SetDriver(toLoad);
+//                SetDriver(toLoad);
             }
         }
     }
