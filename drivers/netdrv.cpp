@@ -160,6 +160,9 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
         udpPkt->len          = cubeParams.length();
         SDLNet_UDP_Send(sckSend, -1, udpPkt);
 
+/////////////// TO DO:  Move the below token detection routine into a function,
+///////////////         which returns a cubeInfo object (similar to the TCDriver_netdrv constructor).
+
         startTime = SDL_GetTicks();
         while ((SDL_GetTicks() - startTime) < attempt_len_ms)
         {
