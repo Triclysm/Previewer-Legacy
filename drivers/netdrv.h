@@ -38,6 +38,7 @@
 #define TC_FF_0C_888_BITPACK        0x01
 #define TC_FF_1C_888_CD4_BYTEPACK   0x02
 #define TC_FF_1C_888_CD8            0x03
+#define TC_FF_0C_444_BITPACK        0x04
 
 
 void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
