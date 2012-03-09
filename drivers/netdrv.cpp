@@ -137,12 +137,12 @@ void TCDriver_netdrv::Poll()
     switch (frameFormat)
     {
         case TC_FF_0C_888_BITPACK:
-            for (int z = 0; z < cubeSize[2]; z++)
+            for (int z = 0; z < 8; z++)
             {
-                for (int y = 0; y < cubeSize[1]; y++)
+                for (int y = 0; y < 8; y++)
                 {
                     Uint8 sliceData = 0x00;
-                    for (int x = 0; x < cubeSize[0]; x++)
+                    for (int x = 0; x < 8; x++)
                     {
                         if (currAnim->GetVoxelColor(x, y, z))
                         {
@@ -151,6 +151,22 @@ void TCDriver_netdrv::Poll()
                     }
                     toSend += (char)sliceData;
                 }
+            }
+            break;
+
+        case TC_FF_0C_444_BITPACK:
+            for (int z = 0; z < 4; z++)
+            {
+                Uint8 sliceData[2] = { 0x00, 0x00 };
+                for (int y = 0; y < 4; y++)
+                {
+                    for (int x = 0; x < 4; x++)
+                    {
+                        sliceData[y/2] = (1 << (x + ( (y % 2 == 0) ? (0) : (4) )));
+                    }
+                }
+                toSend += (char)sliceData[0];
+                toSend += (char)sliceData[1];
             }
             break;
 
@@ -293,7 +309,7 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
                 // parameters to the temporary cube.
                 tmpCube.cube_listenport = cube_listenport;
                 tmpCube.localport       = localport;
-                tmpCube.cube_ip = udpPkt->address.host;
+                tmpCube.cube_ip         = pktPrm->address.host;
                 // Finally, if the cube is not a duplicate, we can add it to the cubeList.
                 bool isDuplicate = false;
                 for (unsigned int i = 0; i < cubeList.size(); i++)

@@ -10,10 +10,10 @@ state    = true
 bitField = { {0,0,0},  {1,0,0},  {0,1,0},  {1,1,0},
              {0,0,1},  {1,0,1},  {0,1,1},  {1,1,1}  }
 
-function Initialize(_speed)
+function Initialize(xspeed)
     math.randomseed(os.time())
 
-    speed  = _speed
+    speed  = xspeed
     mSize  = MaxSize()
     corner = math.random(1, 8)
     
