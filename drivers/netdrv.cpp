@@ -37,6 +37,7 @@
 
 #include "../main.h"
 #include "../console.h"
+#include "../format_conversion.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                  GLOBAL VARIABLES                                   *
@@ -55,8 +56,8 @@ TCDriver_netdrv::TCDriver_netdrv(cubeInfo &cube_params, bool &connected, Uint32 
     connected = false;
 
     // Create UDP sockets.
-    if (    !(sckSend = SDLNet_UDP_Open(cube_params.cube_listenport))
-         || !(sckRecv = SDLNet_UDP_Open(cube_params.localport)) )
+    if (    !(sckSend = SDLNet_UDP_Open(PortToInt(cube_params.cube_listenport)))
+         || !(sckRecv = SDLNet_UDP_Open(PortToInt(cube_params.localport))) )
     {
         WriteOutput("netdrv: Error - could not initialize UDP sockets!");
         return;
@@ -132,6 +133,7 @@ bool TCDriver_netdrv::RecvString(std::string &toRecv)
 void TCDriver_netdrv::Poll()
 {
     std::string toSend = "*TF*";
+    byte nc = currAnim->GetNumColors();
     // Finally, stream cube data.
     LockAnimMutex();
     switch (frameFormat)
@@ -154,6 +156,51 @@ void TCDriver_netdrv::Poll()
             }
             break;
 
+        case TC_FF_1C_888_CD4_BYTEPACK:
+            if (nc == 1)
+            {
+                for (int z = 0; z < 8; z++)
+                {
+                    for (int y = 0; y < 8; y++)
+                    {
+                        for (int x = 0; x < 4; x++)
+                        {
+                            Uint8 toAdd = 0x00,
+                                  colVal;
+
+                            colVal = ((Uint8)currAnim->cubeState[0]->GetVoxelState((2*x), y, z)) >> 4;
+                            toAdd = colVal & 0x0F;
+                            colVal = ((Uint8)currAnim->cubeState[0]->GetVoxelState((2*x)+1, y, z));
+                            toAdd |= (colVal & 0xF0);                           
+
+                            // put 2*x in lower vox., (2*x)+1 in upper.
+                            toSend += (char)toAdd;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int z = 0; z < 8; z++)
+                {
+                    for (int y = 0; y < 8; y++)
+                    {
+                        for (int x = 0; x < 4; x++)
+                        {
+                            Uint8 toAdd = 0x00;
+                            if (currAnim->GetVoxelColor((2*x), y, z))
+                                toAdd |= (0x0F);
+
+                            if (currAnim->GetVoxelColor((2*x)+1, y, z))
+                                toAdd |= (0xF0);
+
+                            toSend += (char)toAdd;
+                        }
+                    }
+                }
+            }
+            break;
+
         case TC_FF_0C_444_BITPACK:
             for (int z = 0; z < 4; z++)
             {
@@ -162,7 +209,8 @@ void TCDriver_netdrv::Poll()
                 {
                     for (int x = 0; x < 4; x++)
                     {
-                        sliceData[y/2] = (1 << (x + ( (y % 2 == 0) ? (0) : (4) )));
+                        if (currAnim->GetVoxelColor(x, y, z))
+                            sliceData[y/2] |= (1 << (x + ( (y % 2 == 0) ? (0) : (4) )));
                     }
                 }
                 toSend += (char)sliceData[0];
@@ -271,14 +319,20 @@ void netdrv_GetCubeList(Uint32 cube_ip, Uint16 cube_listenport,
     static UDPpacket *udpPkt = NULL,
                      *pktPrm = NULL;
 
-    if (    !(sckRecv = SDLNet_UDP_Open(2582))//localport))
-         || !(sckSend = SDLNet_UDP_Open(2581))//))
-         || ((udpPkt == NULL) && !(udpPkt  = SDLNet_AllocPacket(4096)))
-         || ((pktPrm == NULL) && !(pktPrm  = SDLNet_AllocPacket(4096))) )
+    if (    !(sckRecv = SDLNet_UDP_Open(PortToInt(localport)))
+         || !(sckSend = SDLNet_UDP_Open(PortToInt(cube_listenport))) )
     {
-        WriteOutput("netdrv: Fatal error - could not open socket or allocate packet.");
+        WriteOutput("netdrv: Fatal error - could not open socket .");
         return;
     }
+    if (    ((udpPkt == NULL) && !(udpPkt  = SDLNet_AllocPacket(4096)))
+         || ((pktPrm == NULL) && !(pktPrm  = SDLNet_AllocPacket(4096))) )
+    {
+        WriteOutput("netdrv: Fatal error - could not allocate packet.");
+        return;
+
+    }
+
     // Now attempt to retrieve cube parameters.
     Uint32       startTime;
     std::string  cubeParams;

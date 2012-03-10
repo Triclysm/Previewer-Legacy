@@ -331,6 +331,15 @@ bool StringToPort(std::string const& toConvert, Uint16 &result)
     return true;
 }
 
+
+Uint16 PortToInt(Uint16 const& toConvert)
+{
+    Uint16 result;
+    result =  (toConvert & 0x00FF) << 8;
+    result |= (toConvert & 0xFF00) >> 8;
+    return result;
+}
+
 ///
 /// \brief Ip To String
 ///

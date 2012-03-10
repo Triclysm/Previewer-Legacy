@@ -242,6 +242,8 @@ void SetAnim(TCAnim *newAnim)
     // Next, we delete the current animation, and replace it with the passed newAnim.
     // If newAnim is NULL, we set currAnim to a new, default ("blank") animation.
     delete currAnim;
+    currAnim = NULL;
+
     if (newAnim != NULL)
     {
         currAnim = newAnim;
@@ -284,12 +286,13 @@ void SetDriver(TCDriver *newDriver)
     // the driver mutex.
     LockDriverMutex();
     delete currDriver;
+    currDriver = NULL;
 
     if (newDriver != NULL)  // So, if we were passed a valid driver...
     {
         currDriver = newDriver;
         // If the driver is synchronous...
-        if (currDriver->GetDriverType() & TC_DRIVER_TYPE_SYNCHRONOUS)
+        if (currDriver->GetDriverType() == TC_DRIVER_TYPE_SYNCHRONOUS)
         {
             runDriver    = true;
             driverThread = NULL;
@@ -439,7 +442,8 @@ int UpdateAnim(void *unused)
             UnlockDriverMutex();    // Finally, we can unlock the driver mutex.
         }
         // Lastly, we delay by the proper amount before the next Tick.
-        SDL_Delay(msPerTick - (SDL_GetTicks() - updateTime));
+        updateTime = SDL_GetTicks() - updateTime;
+        if (updateTime < msPerTick) SDL_Delay(msPerTick - updateTime);
     }
     return 0;
 }
@@ -467,7 +471,8 @@ int UpdateDriver(void *unused)
         delayVal = currDriver->GetPollRate();
         // Now, we can unlock the driver mutex, and delay for the appropriate time.
         UnlockDriverMutex();
-        SDL_Delay(delayVal - (SDL_GetTicks() - pollTime));
+        pollTime = SDL_GetTicks() - pollTime;
+        if (pollTime < delayVal) SDL_Delay(delayVal - pollTime);
     }
     return 0;
 }

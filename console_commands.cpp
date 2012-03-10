@@ -694,7 +694,7 @@ void netdrv(vectStr const& argv)
     {
         // netdrv c 1 
         // netdrv connect 1 10
-        Uint32 pollRate = 0;
+        Uint32 cPollRate = pollRate;
         int    cubeNum;
         // Get polling rate (if required).
         if (argv.size() == 3)
@@ -705,7 +705,7 @@ void netdrv(vectStr const& argv)
             }
             else
             {
-                pollRate = (Uint32)cubeNum;
+                cPollRate = (Uint32)cubeNum;
             }
         }
         // Get the cube ID, and connect if it's a valid integer.
@@ -715,10 +715,10 @@ void netdrv(vectStr const& argv)
         }
         else
         {
-            netdrv_ConnectCube((unsigned int)cubeNum, 50);
+            netdrv_ConnectCube((unsigned int)cubeNum, cPollRate);
         }
     }
-    else if (argv[0] == "disconnect")
+    else if (argv[0] == "disconnect" || argv[0] == "d")
     {
         SetDriver(NULL);
     }

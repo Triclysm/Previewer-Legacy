@@ -59,6 +59,7 @@ bool StringToIp(std::string const& toConvert, Uint32 &result);
 bool StringToPort(std::string const& toConvert, Uint16 &result);
 bool IpToString(Uint32 const& toConvert, std::string &result);
 bool PortToString(Uint16 const& toConvert, std::string &result);
+Uint16 PortToInt(Uint16 const& toConvert);
 
 // Other conversion functions:
 bool KeySymToString(SDLKey const& toConvert, std::string &result);
