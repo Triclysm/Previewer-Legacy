@@ -138,6 +138,10 @@ void TCDriver_netdrv::Poll()
     LockAnimMutex();
     switch (frameFormat)
     {
+        //
+        // Frame Format:  8x8x8 0-Colour Bit-Pack
+        // Each byte represents all 8 voxel values, on/off, for a particular slice.
+        //
         case TC_FF_0C_888_BITPACK:
             for (int z = 0; z < 8; z++)
             {
@@ -156,6 +160,10 @@ void TCDriver_netdrv::Poll()
             }
             break;
 
+        //
+        // Frame Format:  8x8x8 1-Colour Color Depth 4 Bit-Pack
+        // Each byte represents two 4-bit voxel brightness values.
+        //
         case TC_FF_1C_888_CD4_BYTEPACK:
             if (nc == 1)
             {
@@ -171,7 +179,7 @@ void TCDriver_netdrv::Poll()
                             colVal = ((Uint8)currAnim->cubeState[0]->GetVoxelState((2*x), y, z)) >> 4;
                             toAdd = colVal & 0x0F;
                             colVal = ((Uint8)currAnim->cubeState[0]->GetVoxelState((2*x)+1, y, z));
-                            toAdd |= (colVal & 0xF0);                           
+                            toAdd |= (colVal & 0xF0);
 
                             // put 2*x in lower vox., (2*x)+1 in upper.
                             toSend += (char)toAdd;
@@ -201,6 +209,63 @@ void TCDriver_netdrv::Poll()
             }
             break;
 
+
+        //
+        // Frame Format:  8x8x8 1-Colour Color Depth 6
+        // Each byte represents each voxel's 6-bit brightness value.
+        //
+        case TC_FF_1C_888_CD6:
+            switch (nc)
+            {
+                case 0:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                toSend += (char)((currAnim->cubeState[0]->GetVoxelState(x, y, z) ? 0xFF : 0x00) >> 2);
+                            }
+                        }
+                    }
+                    break;
+                case 1:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) >> 2);
+                            }
+                        }
+                    }
+                    break;
+
+                case 3:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                unsigned int brightness = currAnim->cubeState[0]->GetVoxelState(x, y, z)
+                                                        + currAnim->cubeState[1]->GetVoxelState(x, y, z)
+                                                        + currAnim->cubeState[2]->GetVoxelState(x, y, z);
+                                brightness /= (0xFF*3);
+                                toSend += (char)(brightness >> 2);
+                            }
+                        }
+                    }
+                    break;
+            }
+            break;
+
+
+        //
+        // Frame Format:  4x4x4 0-Colour Bit-Pack
+        // Each byte represents two slices of on/off data for each voxel (8 voxels/byte).
+        //
         case TC_FF_0C_444_BITPACK:
             for (int z = 0; z < 4; z++)
             {
