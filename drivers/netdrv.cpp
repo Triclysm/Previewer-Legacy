@@ -37,6 +37,7 @@
 
 #include "../main.h"
 #include "../console.h"
+#include "../render.h"
 #include "../format_conversion.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -280,6 +281,64 @@ void TCDriver_netdrv::Poll()
                 }
                 toSend += (char)sliceData[0];
                 toSend += (char)sliceData[1];
+            }
+            break;
+
+
+        case TC_FF_3C_444:
+            switch (nc)
+            {
+                case 0:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                if (currAnim->cubeState[0]->GetVoxelState(x, y, z))
+                                {
+                                    toSend += (char)(0xFF * colLedOn[0]);
+                                    toSend += (char)(0xFF * colLedOn[1]);
+                                    toSend += (char)(0xFF * colLedOn[2]);
+                                }
+                                else
+                                {
+                                    toSend += (char)0;
+                                    toSend += (char)0;
+                                    toSend += (char)0;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 1:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) * colLedOn[0]);
+                                toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) * colLedOn[1]);
+                                toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) * colLedOn[2]);
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    for (int z = 0; z < 8; z++)
+                    {
+                        for (int y = 0; y < 8; y++)
+                        {
+                            for (int x = 0; x < 8; x++)
+                            {
+                                toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z));
+                                toSend += (char)(currAnim->cubeState[1]->GetVoxelState(x, y, z));
+                                toSend += (char)(currAnim->cubeState[2]->GetVoxelState(x, y, z));\
+                            }
+                        }
+                    }
+                    break;
             }
             break;
 
