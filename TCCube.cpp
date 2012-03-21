@@ -521,7 +521,7 @@ void TCCube::Shift(byte plane, sbyte offset, byte shiftIn)
             if (offset > 0)
             {
                 // Start at the top, and shift each layer up by the offset.
-                for (int y = sc[0] - 1; (y - offset) >= 0; y--)
+                for (int y = sc[1] - 1; (y - offset) >= 0; y--)
                 {
                     for (int x = 0; x < sc[0]; x++)
                     {
