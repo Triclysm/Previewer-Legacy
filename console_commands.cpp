@@ -736,7 +736,7 @@ void netdrv(vectStr const& argv)
         }
         else
         {
-            if (argv[1] == "rate")
+            if (argv[1] == "rate" || argv[1] == "rate_raw")
             {
                 if (argv.size() != 3)
                 {
@@ -756,7 +756,8 @@ void netdrv(vectStr const& argv)
                     }
                     else
                     {
-                        cmdStr = "*TR*";
+                        if (argv[1] == "rate") cmdStr = "*TR*";
+                        else                   cmdStr = "*TW*";
                         cmdStr += (char)newRate;
                         cmdStr += "*TE*";
                         // TODO: Look at return value (held in numSent) to determine
