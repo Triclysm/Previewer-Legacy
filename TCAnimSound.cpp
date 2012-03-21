@@ -47,15 +47,17 @@ TCAnimSound::TCAnimSound(byte tccSize[3], byte colors, byte plane, byte directio
     cPlane     = plane;
     cDirection = (direction >= 0) ? 1 : -1;
     buffer    = new byte**[2];
-    numFreq   = tccSize[TC_OAXIS[cPlane][0]];
-    numLevels = tccSize[TC_OAXIS[cPlane][1]];
+    numFreq   = tccSize[TC_OAXIS[cPlane][1]];
+    numLevels = tccSize[TC_OAXIS[cPlane][0]];
     // allocate buffers
     buffer[0] = new byte*[numFreq];
     buffer[1] = new byte*[numFreq];
+    binMaxes  = new float[numFreq];
     for (byte i = 0; i < numFreq; i++)
     {
         buffer[0][i] = new byte[numLevels];
         buffer[1][i] = new byte[numLevels];
+        binMaxes[i]  = 0.0f;
     }
     // initialize pointers
     readBuffer  = buffer[0];
@@ -127,7 +129,6 @@ void TCAnimSound::ParseSample(int chan, void *stream, int len, void *udata)
     static bool  clearBuff = false,
                  usingBuff = false,
                  zeroVals  = false;
-    static float maxAmpl   = 0.0f;
 
     if (usingBuff || len <= 0) return;
     usingBuff = true;
@@ -140,17 +141,17 @@ void TCAnimSound::ParseSample(int chan, void *stream, int len, void *udata)
     // * * SPLIT STREAMS * * //
     short *oStrR = new short[cLen];
     short *oStrL = new short[cLen];
-    for (unsigned int i = 0; i < pLen; i++)
+    unsigned int i = 0;
+    while (i < pLen)
     {
-        oStrL[i >> 1] = pStr[i];
-        i++;
-        oStrR[i >> 1] = pStr[i];
+        oStrL[i >> 1] = pStr[i++];
+        oStrR[i >> 1] = pStr[i++];
     }
 
     float *fftL = doFFT(cLen, oStrL),
           *fftR = doFFT(cLen, oStrR),
           *fftBuff;
-    int    fLen = (cLen / 2) + 1;
+    cLen = (cLen / 2) + 1;
 
     // Update buffer w/ values of parsed data.
 
@@ -160,6 +161,7 @@ void TCAnimSound::ParseSample(int chan, void *stream, int len, void *udata)
 
     // Keep running tally of max. vol
     int binLen  = cLen / numFreq;
+    // kill everything above 10 KHz?
     
     for (int i = 0; i < numFreq; i++)
     {
@@ -170,7 +172,7 @@ void TCAnimSound::ParseSample(int chan, void *stream, int len, void *udata)
             if (abs(fftL[offset+j]) > fftBuff[i]) fftBuff[i] = abs(fftL[offset+j]);
             if (abs(fftR[offset+j]) > fftBuff[i]) fftBuff[i] = abs(fftR[offset+j]);
         }
-        if (fftBuff[i] > maxAmpl) maxAmpl = fftBuff[i];
+        if (fftBuff[i] > binMaxes[i]) binMaxes[i] = fftBuff[i];
     }
 
     // Divide all samples by max. amplitude (scales so max. is 1.0f),
@@ -178,7 +180,8 @@ void TCAnimSound::ParseSample(int chan, void *stream, int len, void *udata)
     float height_per_level = 1.0 / numLevels;
     for (int i = 0; i < numFreq; i++)
     {
-        fftBuff[i] /= 30480.0f;//maxAmpl;
+        fftBuff[i] /= binMaxes[i];
+        //fftBuff[i] /= 30480.0f;
         
         if (fftBuff[i] > 1.0f) fftBuff[i] = 1.0f;
         if (fftBuff[i] < 0.0f) fftBuff[i] = 0.0f;
