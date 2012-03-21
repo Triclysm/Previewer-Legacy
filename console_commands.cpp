@@ -37,6 +37,7 @@
 #include "main.h"
 #include "TCAnim.h"
 #include "TCAnimLua.h"
+#include "TCAnimSound.h"
 #include "SDL_net.h"
 #include "drivers/netdrv.h"
 
@@ -66,6 +67,27 @@ namespace TC_Console_Error
 
 namespace TC_Console_Commands
 {
+
+
+//////////////////////////////////
+void sound(vectStr const& argv)
+{
+    if (argv.size() != 2)
+    {
+        TC_Console_Error::WrongArgCount(argv.size(), 2);
+        return;
+    }
+
+    if (argv[0] == "load")
+    {
+        SoundAnimLoader(argv[1].c_str());
+    }
+
+}
+
+
+//////////////////////////////////
+
 
 void bind(vectStr const& argv)
 {
@@ -1223,6 +1245,8 @@ void wait(vectStr const& argv)
 ///
 void RegisterCommands()
 {
+    cmdList.push_back(new ConsoleCommand("sound", sound, ""));
+
     cmdList.push_back(new ConsoleCommand("bind", bind,
         "Assigns a key combination to a particular console command. Usage:\n\n"
         "    bind [flags] key cmd     Where each argument is as follows:\n\n"
