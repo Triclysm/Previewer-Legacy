@@ -34,6 +34,8 @@ class TCAnimSound : public TCAnim
     byte numFreq,
          numLevels;
 
+    float *binMaxes;
+
     void Update();
 };
 
