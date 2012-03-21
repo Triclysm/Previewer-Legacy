@@ -289,11 +289,11 @@ void TCDriver_netdrv::Poll()
             switch (nc)
             {
                 case 0:
-                    for (int z = 0; z < 8; z++)
+                    for (int z = 0; z < 4; z++)
                     {
-                        for (int y = 0; y < 8; y++)
+                        for (int y = 0; y < 4; y++)
                         {
-                            for (int x = 0; x < 8; x++)
+                            for (int x = 0; x < 4; x++)
                             {
                                 if (currAnim->cubeState[0]->GetVoxelState(x, y, z))
                                 {
@@ -312,11 +312,11 @@ void TCDriver_netdrv::Poll()
                     }
                     break;
                 case 1:
-                    for (int z = 0; z < 8; z++)
+                    for (int z = 0; z < 4; z++)
                     {
-                        for (int y = 0; y < 8; y++)
+                        for (int y = 0; y < 4; y++)
                         {
-                            for (int x = 0; x < 8; x++)
+                            for (int x = 0; x < 4; x++)
                             {
                                 toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) * colLedOn[0]);
                                 toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z) * colLedOn[1]);
@@ -326,11 +326,11 @@ void TCDriver_netdrv::Poll()
                     }
                     break;
                 case 3:
-                    for (int z = 0; z < 8; z++)
+                    for (int z = 0; z < 4; z++)
                     {
-                        for (int y = 0; y < 8; y++)
+                        for (int y = 0; y < 4; y++)
                         {
-                            for (int x = 0; x < 8; x++)
+                            for (int x = 0; x < 4; x++)
                             {
                                 toSend += (char)(currAnim->cubeState[0]->GetVoxelState(x, y, z));
                                 toSend += (char)(currAnim->cubeState[1]->GetVoxelState(x, y, z));
