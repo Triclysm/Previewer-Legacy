@@ -232,6 +232,8 @@ void SetAnim(TCAnim *newAnim)
     // Next, we delete the current animation, and replace it with the passed newAnim.
     // If newAnim is NULL, we set currAnim to a new, default ("blank") animation.
     delete currAnim;
+    currAnim = NULL;
+
     if (newAnim != NULL)
     {
         currAnim = newAnim;
@@ -248,6 +250,69 @@ void SetAnim(TCAnim *newAnim)
 
 
 ///
+<<<<<<< HEAD
+/// \brief Set Driver
+///
+/// Updates the current driver pointed to by \ref currDriver with the new driver
+/// passed to this function, and updates the state of the nullAnim condition.
+///
+/// \param   newDriver  A pointer to the new cube driver.  This object needs to be
+///                     fully initialized before passing it to this function.  To
+///                     unload a driver, set newDriver as NULL.
+///
+/// \see     currDriver
+///
+void SetDriver(TCDriver *newDriver)
+{
+    // First, we gracefully stop the current driver.
+    LockAnimMutex(); LockDriverMutex();
+    runDriver = false;
+    UnlockDriverMutex(); UnlockAnimMutex();
+    if (driverThread != NULL)
+    {
+        SDL_WaitThread(driverThread, NULL);
+        driverThread = NULL;
+    }
+    // Now, we can safely delete the driver object, after we re-lock
+    // the driver mutex.
+    LockDriverMutex();
+    delete currDriver;
+    currDriver = NULL;
+
+    if (newDriver != NULL)  // So, if we were passed a valid driver...
+    {
+        currDriver = newDriver;
+        // If the driver is synchronous...
+        if (currDriver->GetDriverType() == TC_DRIVER_TYPE_SYNCHRONOUS)
+        {
+            runDriver    = true;
+            driverThread = NULL;
+        }
+        // Else, if the driver is to be run asynchronously...
+        else
+        {
+            // Instead, we create a new thread (based on the UpdateDriver
+            // function) and have it continually loop in the thread.
+            runDriver    = true;
+            driverThread = SDL_CreateThread(UpdateDriver, NULL);
+            if (driverThread == NULL)   // If we couldn't create the thread...
+            {
+                // Print an error, and delete the driver object (since it's invalid now).
+                runDriver = false;
+                delete currDriver;
+                currDriver = NULL;
+                WriteOutput("Error - could not create driver thread!");
+            }
+        }
+    }
+
+    UnlockDriverMutex();
+}
+
+
+///
+=======
+>>>>>>> master
 /// \brief Set Cube Size (Rectangular)
 ///
 /// Sets the global cube size array (\ref cubeSize), updates the drawing position origin
@@ -356,7 +421,42 @@ int UpdateAnim(void *unused)
             currAnim->Tick();       // update the animation's state,
             UnlockAnimMutex();      // and unlock the mutex.
         }
+<<<<<<< HEAD
+        // Lastly, we delay by the proper amount before the next Tick.
+        updateTime = SDL_GetTicks() - updateTime;
+        if (updateTime < msPerTick) SDL_Delay(msPerTick - updateTime);
+    }
+    return 0;
+}
+
+
+///
+/// \brief Update Driver
+///
+/// This function is run in a seperate thread, which continuously calls the Poll
+/// method of the current driver.
+///
+/// \returns Unused return value.
+/// \see     InitAnimThread | msPerTick | runAnim | runProgram | currAnim
+///
+int UpdateDriver(void *unused)
+{
+    while (runDriver)      // So, looping while the driver is still running...
+    {
+        Uint32 delayVal,
+               pollTime = SDL_GetTicks();
+        // First, we lock the driver mutex.
+        LockDriverMutex();
+        // Now, we can poll the driver, and get the polling rate.
+        currDriver->Poll();
+        delayVal = currDriver->GetPollRate();
+        // Now, we can unlock the driver mutex, and delay for the appropriate time.
+        UnlockDriverMutex();
+        pollTime = SDL_GetTicks() - pollTime;
+        if (pollTime < delayVal) SDL_Delay(delayVal - pollTime);
+=======
         SDL_Delay(msPerTick);   // Finally, we wait until we need to for the next Tick.
+>>>>>>> master
     }
     return 0;
 }

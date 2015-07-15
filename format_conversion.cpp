@@ -254,6 +254,158 @@ bool StringToKeySym(std::string const& toConvert, SDLKey &result)
 
 
 ///
+<<<<<<< HEAD
+/// \brief String To Integer
+///
+/// Attempts to convert the passed string into an integer.
+///
+/// \param toConvert The string representing the integer value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool StringToIp(std::string const& toConvert, Uint32 &result)
+{
+    // "1.1.1.1"         =  7 Characters Minimum
+    // "111.111.111.111" = 15 Characters Maximum
+    if (toConvert.length() < 7 || toConvert.length() > 15)
+        return false;
+
+    std::string ipStr(toConvert);
+    Uint32      ipRes  = 0;
+    Uint32      tmpRes = 0;
+
+    std::stringstream *ssToConv;
+
+    // Now, split string up by occurance of .'s
+    for (int i = 0; i < 3; i++)
+    {
+        // Each '.' should be at position 1, 2, or 3.
+        // If not, the string is invalid.
+        std::string::size_type ppos = ipStr.find('.');
+        if (ppos == std::string::npos || ppos < 1 || ppos > 3)
+            return false;
+
+        // Now we can get the value.
+        ssToConv = new std::stringstream(ipStr.substr(0, ppos));
+        if (!((*ssToConv) >> tmpRes) || tmpRes < 0 || tmpRes > 255)
+        {
+            delete ssToConv;
+            return false;
+        }
+        delete ssToConv;
+
+        // Finally, update ipStr, and add the byte in the proper position.
+        ipStr  =  ipStr.substr(ppos+1);
+        ipRes  += (Uint32)(tmpRes << (i*8));
+        tmpRes = 0;
+    }
+    // If we got here, all is well, so convert the remaining value.
+    ssToConv = new std::stringstream(ipStr);
+    if (!((*ssToConv) >> tmpRes) || tmpRes < 0 || tmpRes > 255)
+    {
+        delete ssToConv;
+        return false;
+    }
+    delete ssToConv;
+    ipRes += (Uint32)(tmpRes << 24);
+
+    result = ipRes;
+    return true;
+}
+
+bool StringToPort(std::string const& toConvert, Uint16 &result)
+{
+    // Convert string to int.
+    Uint16 tmpPort;
+    int    portNum;
+    if (!StringToInt(toConvert, portNum) || portNum < 0 || portNum > 65535)
+    {
+        return false;
+    }
+    tmpPort = (Uint16)portNum;
+    // Finally, swap bytes and store in result.
+    result =  (tmpPort & 0x00FF) << 8;
+    result |= (tmpPort & 0xFF00) >> 8;
+    return true;
+}
+
+
+Uint16 PortToInt(Uint16 const& toConvert)
+{
+    Uint16 result;
+    result =  (toConvert & 0x00FF) << 8;
+    result |= (toConvert & 0xFF00) >> 8;
+    return result;
+}
+
+///
+/// \brief Ip To String
+///
+/// Attempts to convert the passed string into an integer.
+///
+/// \param toConvert The string representing the integer value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool IpToString(Uint32 const& toConvert, std::string &result)
+{
+    Uint8 addrBytes[4];
+    std::stringstream outVal("");
+    Uint32 bitMask = 0x000000FF;
+    for (int i = 0; i < 4; i++)
+    {
+        Uint32 tmpVal = toConvert & bitMask;
+        tmpVal = tmpVal >> (i*8);
+        addrBytes[i] = (Uint8)tmpVal;
+        bitMask = bitMask << 8;
+    }
+    
+    outVal << (int)addrBytes[0] << '.'
+           << (int)addrBytes[1] << '.'
+           << (int)addrBytes[2] << '.'
+           << (int)addrBytes[3];
+
+    result = outVal.str();
+    return true;
+}
+
+
+///
+/// \brief Port To String
+///
+/// Attempts to convert the passed string into an integer.
+///
+/// \param toConvert The string representing the integer value to convert.
+/// \param result    The variable to store the result in (if applicable).
+///
+/// \returns True if the conversion was successful, false otherwise.
+/// \remarks If this function returns false, the value of the result is undefined, and
+///          should not be used.
+///
+bool PortToString(Uint16 const& toConvert, std::string &result)
+{
+    Uint16 portNum;
+    std::stringstream outVal("");
+    // Swap byte order, convert to int & print.
+    portNum =  (toConvert & 0x00FF) << 8;
+    portNum |= (toConvert & 0xFF00) >> 8;
+    
+    outVal << (int)portNum;
+    result = outVal.str();
+    return true;
+
+}
+
+
+///
+=======
+>>>>>>> master
 /// \brief Key Symbol To String
 ///
 /// Attempts to convert the passed SDL Key Symbol (SDLKey) into a string.
