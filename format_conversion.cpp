@@ -254,7 +254,6 @@ bool StringToKeySym(std::string const& toConvert, SDLKey &result)
 
 
 ///
-<<<<<<< HEAD
 /// \brief String To Integer
 ///
 /// Attempts to convert the passed string into an integer.
@@ -404,8 +403,6 @@ bool PortToString(Uint16 const& toConvert, std::string &result)
 
 
 ///
-=======
->>>>>>> master
 /// \brief Key Symbol To String
 ///
 /// Attempts to convert the passed SDL Key Symbol (SDLKey) into a string.

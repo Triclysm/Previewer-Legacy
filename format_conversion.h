@@ -54,7 +54,6 @@ bool StringToBool(std::string const& toConvert, bool &result);
 bool StringToConst(std::string const& toConvert, int &result);
 bool StringToKeySym(std::string const& toConvert, SDLKey &result);
 
-<<<<<<< HEAD
 // Network conversion functions (assumes integers in network byte order):
 bool StringToIp(std::string const& toConvert, Uint32 &result);
 bool StringToPort(std::string const& toConvert, Uint16 &result);
@@ -62,8 +61,6 @@ bool IpToString(Uint32 const& toConvert, std::string &result);
 bool PortToString(Uint16 const& toConvert, std::string &result);
 Uint16 PortToInt(Uint16 const& toConvert);
 
-=======
->>>>>>> master
 // Other conversion functions:
 bool KeySymToString(SDLKey const& toConvert, std::string &result);
 bool KeyBindToString(KeyBind *toConvert, std::string &result);

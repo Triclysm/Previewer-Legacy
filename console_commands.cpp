@@ -28,6 +28,7 @@
 #include <vector>                   // Required to pass arguments to commands.
 #include <sstream>                  // Useful for creating strings or converting values.
 #include <cstring>                  // Required to use memcpy in the screenshot command.
+#include <list>
 
 #include "console.h"
 #include "events.h"
@@ -36,6 +37,8 @@
 #include "main.h"
 #include "TCAnim.h"
 #include "TCAnimLua.h"
+#include "SDL_net.h"
+#include "drivers/netdrv.h"
 
 typedef std::vector<std::string> vectStr;
 
@@ -515,7 +518,6 @@ void loadanim(vectStr const& argv)
     delete argVals;
 }
 
-<<<<<<< HEAD
 void netdrv(vectStr const& argv)
 {
     static bool   initSDLNet = false;
@@ -793,8 +795,6 @@ void netdrv(vectStr const& argv)
     // netdrv (d)isconnect    // 
 }
 
-=======
->>>>>>> master
 void loadscript(vectStr const& argv)
 {
     if (argv.size() == 1)
@@ -1305,6 +1305,9 @@ void RegisterCommands()
         "Loads a script from a file. Usage:\n\n"
         "    loadscript filename\n\n"
         "Where filename is the name of the script (including extension, usually .tcs)."));
+
+    cmdList.push_back(new ConsoleCommand("netdrv", netdrv,
+        ""));
 
     cmdList.push_back(new ConsoleCommand("quality", quality,
         "Changes the polygon count of the individual LED spheres making up the cube. "
