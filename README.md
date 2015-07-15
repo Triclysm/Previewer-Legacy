@@ -29,11 +29,11 @@ Once Triclysm is open, hit the tilde key to open the console, and type `loadanim
 
 ### Screenshots
 
-[<img src="https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-1.png" alt="" width="360" />](https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-1.png)
+[<img src="https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-1.png" alt="" width="450" />](https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-1.png)
 
-[<img src="https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-2.png" alt="" width="360" />](https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-2.png)
+[<img src="https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-2.png" alt="" width="450" />](https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-2.png)
 
-[<img src="https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-3.png" alt="" width="360" />](https://github.com/Breakthrough/Triclysm/raw/resources/screenshots/tc-3.png)
+[<img src="https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-3.png" alt="" width="450" />](https://github.com/Triclysm/Previewer-Legacy/raw/resources/screenshots/tc-3.png)
 
 
 -------
