@@ -4,8 +4,6 @@ Triclysm is an environment for developing and controlling animations on real-wor
 
 Triclysm works on Windows, Linux, and OSX, and requires SDL and OpenGL support.  Firmware for Atmel microcontrollers will be provided in the future, as well as hardware schematics for building a physical LED cube (more information coming soon).
 
-Note that this is the legacy version of Triclysm Previewer.  A new version is in development, which will use SDL2 and have modern OpenGL support, as well as a proper GUI (instead of using the scripting console included now).  The new version of Triclysm will also use Python as the animation scripting language instead of Lua.
-
 -------
 
 ## Compiling
@@ -21,7 +19,19 @@ Once the prerequisites are obtained, you can build Triclysm by calling the build
 
 ## Quickstart
 
-Once Triclysm is open, hit the tilde key to open the console, and type `loadanim sendplane`.
+To change the window resolution, or toggle fullscreen mode, modify the `config.tcs` file.  Once Triclysm is open, the default config file will load the `sendplane` animation.  Hit `f` to show/hide the current framerate.
+
+Hit the tilde key to open/close the console.  In the console, type `help [command]` for help with particular commands (e.g. `help loadanim` or `help bind`).  Some example commands to try:
+
+Some example commands to try:
+
+ - `loadanim fillplane`
+ - `cubesize 6x8x10`
+ - `showfps`
+ - `showaxis`
+ - `quit`
+
+You can bind console commands to keys as well with the `bind` command.  See the `config.tcs` file for examples, as well as the default key configuration.  To quit Triclysm, hit the escape key *twice*, or use the `quit` console command.  You can also bind a key of your preference to the quit command if you prefer (e.g. `bind q quit`).
 
 -------
 
